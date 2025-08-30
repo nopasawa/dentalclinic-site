@@ -387,7 +387,7 @@
             history.replaceState({ view: 'welcome-view' }, '', '#welcome-view');
         });
         
-        // --- All functions from the previous correct version are here ---
+        // --- All functions are here, including the corrected handleLogin and onAuthStateChanged
         async function loadClinicConfig() {
             showLoading(true);
             const configRef = doc(db, "clinic_settings", "config");
@@ -402,6 +402,7 @@
             listenToBookedSlots(); // Listen to public slots for all users
             showLoading(false);
         }
+
         function updatePublicUI() {
             document.querySelectorAll('.clinic-name').forEach(el => el.textContent = clinicConfig.clinicName);
             const announcementSection = document.getElementById('announcement-section');
@@ -418,6 +419,7 @@
             }
             setupDateTimePickers();
         }
+
         function listenToAllAppointments() {
             if (unsubscribeAllAppointments) unsubscribeAllAppointments();
             const q = query(collection(db, "appointments"));
@@ -430,6 +432,7 @@
                 console.error("Error listening to appointments:", error);
             });
         }
+        
         function listenToBookedSlots() {
             if (unsubscribeBookedSlots) unsubscribeBookedSlots();
             const q = query(collection(db, "booked_slots"));
@@ -443,6 +446,8 @@
                 console.error("Error listening to booked slots:", error);
             });
         }
+
+
         function listenToMessages() {
             if (unsubscribeMessages) unsubscribeMessages();
             const q = query(collection(db, "messages"));
@@ -463,6 +468,7 @@
                 console.error("Error listening to messages:", error);
             });
         }
+        
         function setupDateTimePickers() {
             if (!clinicConfig) return;
             const calendarGrid = document.getElementById('calendar-grid');
@@ -471,6 +477,7 @@
                 renderTimeSlots(null, true);
             }
         }
+        
         function renderCalendar(year, month) {
             const calendarGrid = document.getElementById('calendar-grid');
             const monthYearHeader = document.getElementById('month-year-header');
@@ -496,6 +503,7 @@
                 calendarGrid.innerHTML += `<div class="${classes}" data-date="${dateStr}">${day}</div>`;
             }
         }
+        
         function renderTimeSlots(dateStr, forceRender = false) {
             const timeSlotsContainer = document.getElementById('time-slots-container');
             const timeSlotsGrid = document.getElementById('time-slots-grid');
@@ -934,7 +942,7 @@
                 }
             });
         }
-        async function handleLogin(e) { e.preventDefault(); showLoading(true); const errEl = document.getElementById('login-error'); errEl.textContent = ''; try { await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-password').value); } catch (error) { errEl.textContent = "อีเมลหรือรหัสผ่านไม่ถูกต้อง"; } finally { showLoading(false); } }
+        async function handleLogin(e) { e.preventDefault(); showLoading(true); const errEl = document.getElementById('login-error'); errEl.textContent = ''; try { const userCredential = await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-password').value); const user = userCredential.user; const userDocRef = doc(db, "users", user.uid); const userDoc = await getDoc(userDocRef); if (userDoc.exists() && userDoc.data().role === 'staff') { /* Success, onAuthStateChanged will handle UI */ } else { await signOut(auth); errEl.textContent = "บัญชีนี้ไม่มีสิทธิ์ในการเข้าถึง"; } } catch (error) { errEl.textContent = "อีเมลหรือรหัสผ่านไม่ถูกต้อง"; } finally { showLoading(false); } }
         async function handleRegister(e) { e.preventDefault(); showLoading(true); const errEl = document.getElementById('register-error'); errEl.textContent = ''; try { const cred = await createUserWithEmailAndPassword(auth, document.getElementById('register-email').value, document.getElementById('register-password').value); await setDoc(doc(db, "users", cred.user.uid), { fullName: document.getElementById('register-name').value, email: cred.user.email, role: 'staff' }); } catch (error) { errEl.textContent = "เกิดข้อผิดพลาด: " + error.message; } finally { showLoading(false); } }
         async function handleBookingSubmit(e) {
             e.preventDefault();
@@ -1004,8 +1012,9 @@
         onAuthStateChanged(auth, async (user) => {
             if (unsubscribeAllAppointments) unsubscribeAllAppointments();
             if (unsubscribeMessages) unsubscribeMessages();
-            showLoading(true);
+            
             if(user) {
+                showLoading(true);
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if(userDoc.exists() && userDoc.data().role === 'staff') {
                     document.getElementById('admin-welcome').textContent = `สวัสดี, ${userDoc.data().fullName}`;
@@ -1014,13 +1023,13 @@
                     populateSettingsForm();
                     showView('admin-dashboard-view');
                 } else {
-                    signOut(auth);
-                    showView('welcome-view');
+                    // This case is handled by handleLogin, this is a fallback for safety.
+                    await signOut(auth); 
                 }
+                 showLoading(false);
             } else {
                 showView('welcome-view');
             }
-            showLoading(false);
         });
         const showLoading = (isLoading) => loadingOverlay.classList.toggle('hidden', !isLoading);
         function getStatusInfo(status) { switch (status) { case 'pending': return { bg: 'bg-amber-100', text: 'text-amber-800' }; case 'confirmed': return { bg: 'bg-green-100', text: 'text-green-800' }; case 'completed': return { bg: 'bg-sky-100', text: 'text-sky-800' }; case 'cancelled': return { bg: 'bg-red-100', text: 'text-red-800' }; default: return { bg: 'bg-slate-100', text: 'text-slate-800' }; } }
