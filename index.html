@@ -99,6 +99,23 @@
             border-radius: 9999px;
             transition: width 0.5s ease;
         }
+        .pagination-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+        }
+        .pagination-btn.active {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .pagination-btn:not(.active):hover {
+            background-color: #e0e7ff;
+        }
+        .pagination-btn:disabled {
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body class="antialiased text-slate-700">
@@ -319,6 +336,7 @@
                     <div id="admin-usage-view" class="admin-view"></div>
                     <!-- Settings View -->
                     <div id="admin-settings-view" class="admin-view"></div>
+                    <div id="billing-footer-alert" class="mt-8"></div>
                 </main>
             </div>
         </div>
@@ -335,6 +353,7 @@
         import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, onSnapshot, updateDoc, serverTimestamp, getDocs, where, deleteDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         // --- Firebase Config ---
+        // IMPORTANT: When deploying for a client, replace these values with their Firebase project config.
         const firebaseConfig = {
             apiKey: "AIzaSyAtOUoFJg_qcGdtMVgHLDAjK1gkk7rKQ7Q",
             authDomain: "demotest-ab5b5.firebaseapp.com",
@@ -351,6 +370,7 @@
         // --- Global State ---
         let clinicConfig = null;
         let allAppointments = [];
+        let allMessages = [];
         let unsubscribeAllAppointments = null;
         let unsubscribeMessages = null;
         let unsubscribeBookedSlots = null;
@@ -359,6 +379,8 @@
         let selectedDateForBooking = null;
         let selectedTimeForBooking = null;
         let noteModalApptId = null;
+        let currentPage = 1;
+        const itemsPerPage = 10;
 
         const DEFAULT_CONFIG = {
             clinicName: "คลินิกทันตกรรม",
@@ -387,7 +409,7 @@
             history.replaceState({ view: 'welcome-view' }, '', '#welcome-view');
         });
         
-        // --- All functions are here, including the corrected handleLogin and onAuthStateChanged
+        // --- Config, Data Listeners, and UI Updates ---
         async function loadClinicConfig() {
             showLoading(true);
             const configRef = doc(db, "clinic_settings", "config");
@@ -402,7 +424,6 @@
             listenToBookedSlots(); // Listen to public slots for all users
             showLoading(false);
         }
-
         function updatePublicUI() {
             document.querySelectorAll('.clinic-name').forEach(el => el.textContent = clinicConfig.clinicName);
             const announcementSection = document.getElementById('announcement-section');
@@ -419,7 +440,6 @@
             }
             setupDateTimePickers();
         }
-
         function listenToAllAppointments() {
             if (unsubscribeAllAppointments) unsubscribeAllAppointments();
             const q = query(collection(db, "appointments"));
@@ -432,7 +452,6 @@
                 console.error("Error listening to appointments:", error);
             });
         }
-        
         function listenToBookedSlots() {
             if (unsubscribeBookedSlots) unsubscribeBookedSlots();
             const q = query(collection(db, "booked_slots"));
@@ -446,29 +465,17 @@
                 console.error("Error listening to booked slots:", error);
             });
         }
-
-
         function listenToMessages() {
             if (unsubscribeMessages) unsubscribeMessages();
             const q = query(collection(db, "messages"));
             unsubscribeMessages = onSnapshot(q, (querySnapshot) => {
-                const messages = [];
-                querySnapshot.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
-                renderInbox(messages);
-                const badge = document.getElementById('inbox-badge');
-                if (badge) {
-                    if (messages.length > 0) {
-                        badge.textContent = messages.length;
-                        badge.classList.remove('hidden');
-                    } else {
-                        badge.classList.add('hidden');
-                    }
-                }
+                allMessages = [];
+                querySnapshot.forEach(doc => allMessages.push({ id: doc.id, ...doc.data() }));
+                renderInbox();
             }, (error) => {
                 console.error("Error listening to messages:", error);
             });
         }
-        
         function setupDateTimePickers() {
             if (!clinicConfig) return;
             const calendarGrid = document.getElementById('calendar-grid');
@@ -477,7 +484,6 @@
                 renderTimeSlots(null, true);
             }
         }
-        
         function renderCalendar(year, month) {
             const calendarGrid = document.getElementById('calendar-grid');
             const monthYearHeader = document.getElementById('month-year-header');
@@ -503,7 +509,6 @@
                 calendarGrid.innerHTML += `<div class="${classes}" data-date="${dateStr}">${day}</div>`;
             }
         }
-        
         function renderTimeSlots(dateStr, forceRender = false) {
             const timeSlotsContainer = document.getElementById('time-slots-container');
             const timeSlotsGrid = document.getElementById('time-slots-grid');
@@ -549,132 +554,45 @@
             if(!container || !allAppointments) return;
             const todayStr = new Date().toISOString().split('T')[0];
             const todayAppointments = allAppointments.filter(appt => appt.date === todayStr);
-            container.innerHTML = `
-                <h3 class="text-2xl font-bold mb-4 text-slate-800">สรุปข้อมูลวันนี้</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-lg"><h4 class="text-slate-500 font-medium">นัดหมายวันนี้</h4><p id="stats-today-total" class="text-4xl font-bold mt-2 text-indigo-500">${todayAppointments.length}</p></div>
-                    <div class="bg-white p-6 rounded-2xl shadow-lg"><h4 class="text-slate-500 font-medium">รอการยืนยัน</h4><p id="stats-pending" class="text-4xl font-bold mt-2 text-amber-500">${allAppointments.filter(appt => appt.status === 'pending').length}</p></div>
-                    <div class="bg-white p-6 rounded-2xl shadow-lg"><h4 class="text-slate-500 font-medium">เสร็จสิ้นแล้ว</h4><p id="stats-completed-today" class="text-4xl font-bold mt-2 text-green-500">${todayAppointments.filter(appt => appt.status === 'completed').length}</p></div>
-                </div>`;
+            container.innerHTML = `<h3 class="text-2xl font-bold mb-4 text-slate-800">สรุปข้อมูลวันนี้</h3><div class="grid grid-cols-1 md:grid-cols-3 gap-6"><div class="bg-white p-6 rounded-2xl shadow-lg"><h4 class="text-slate-500 font-medium">นัดหมายวันนี้</h4><p id="stats-today-total" class="text-4xl font-bold mt-2 text-indigo-500">${todayAppointments.length}</p></div><div class="bg-white p-6 rounded-2xl shadow-lg"><h4 class="text-slate-500 font-medium">รอการยืนยัน</h4><p id="stats-pending" class="text-4xl font-bold mt-2 text-amber-500">${allAppointments.filter(appt => appt.status === 'pending').length}</p></div><div class="bg-white p-6 rounded-2xl shadow-lg"><h4 class="text-slate-500 font-medium">เสร็จสิ้นแล้ว</h4><p id="stats-completed-today" class="text-4xl font-bold mt-2 text-green-500">${todayAppointments.filter(appt => appt.status === 'completed').length}</p></div></div>`;
         }
         function renderAllAppointmentsTable() {
             const container = document.getElementById('admin-appointments-view');
             if (!container || !allAppointments) return;
-            allAppointments.sort((a,b) => new Date(`${b.date}T${b.time}`) - new Date(`${a.date}T${a.time}`));
-            container.innerHTML = `
-            <div class="bg-white p-6 rounded-2xl shadow-lg">
-                <h3 class="text-2xl font-bold mb-4 text-slate-800">รายการนัดหมายทั้งหมด</h3>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full">
-                         <thead class="border-b border-slate-200">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">วันและเวลา</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">ชื่อคนไข้</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">บริการ</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">สถานะ</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">จัดการ</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                        ${allAppointments.map(appt => {
-                            const statusInfo = getStatusInfo(appt.status);
-                            const noteIcon = `
-                                <svg data-id="${appt.id}" data-note="${appt.note || ''}" class="note-icon cursor-pointer inline-block w-5 h-5 ${appt.note ? 'text-blue-500' : 'text-gray-400'}" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 12V7a2 2 0 012-2h2.586l-4 4H5zM3 15a2 2 0 012-2h9.586l-2.293 2.293A1 1 0 0112 16H5a2 2 0 01-2-2z"></path>
-                                </svg>`;
-                            return `
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">${new Date(appt.date).toLocaleDateString('th-TH')} ${appt.time}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${appt.patientName} ${noteIcon}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">${appt.service}</td>
-                                <td class="px-6 py-4 whitespace-nowrap"><span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${statusInfo.bg} ${statusInfo.text}">${translateStatus(appt.status)}</span></td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                    <button data-id="${appt.id}" data-status="confirmed" class="update-status-btn text-green-600 hover:text-green-900 ${appt.status !== 'pending' ? 'hidden' : ''}">ยืนยัน</button>
-                                    <button data-id="${appt.id}" data-status="completed" class="update-status-btn text-blue-600 hover:text-blue-900 ${appt.status !== 'confirmed' ? 'hidden' : ''}">เสร็จสิ้น</button>
-                                    <button data-id="${appt.id}" data-status="cancelled" class="update-status-btn text-red-600 hover:text-red-900 ${['completed', 'cancelled'].includes(appt.status) ? 'hidden' : ''}">ยกเลิก</button>
-                                </td>
-                            </tr>`;
-                        }).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            </div>`;
+            const visibleAppointments = allAppointments.filter(appt => appt.status !== 'completed');
+            visibleAppointments.sort((a,b) => new Date(`${b.date}T${b.time}`) - new Date(`${a.date}T${a.time}`));
+            container.innerHTML = `<div class="bg-white p-6 rounded-2xl shadow-lg"><div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-slate-800">รายการนัดหมายทั้งหมด</h3><button id="export-csv-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg><span>Export Report (CSV)</span></button></div><div class="overflow-x-auto"><table class="min-w-full"><thead class="border-b border-slate-200"><tr><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">วันและเวลา</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">ชื่อคนไข้</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">บริการ</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">สถานะ</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">จัดการ</th></tr></thead><tbody class="divide-y divide-slate-100">${visibleAppointments.map(appt => { const statusInfo = getStatusInfo(appt.status); const noteIcon = `<svg data-id="${appt.id}" data-note="${appt.note || ''}" class="note-icon cursor-pointer inline-block w-5 h-5 ${appt.note ? 'text-blue-500' : 'text-gray-400'}" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 12V7a2 2 0 012-2h2.586l-4 4H5zM3 15a2 2 0 012-2h9.586l-2.293 2.293A1 1 0 0112 16H5a2 2 0 01-2-2z"></path></svg>`; return `<tr><td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">${new Date(appt.date).toLocaleDateString('th-TH')} ${appt.time}</td><td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${appt.patientName} ${noteIcon}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">${appt.service}</td><td class="px-6 py-4 whitespace-nowrap"><span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${statusInfo.bg} ${statusInfo.text}">${translateStatus(appt.status)}</span></td><td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2"><button data-id="${appt.id}" data-status="confirmed" class="update-status-btn text-green-600 hover:text-green-900 ${appt.status !== 'pending' ? 'hidden' : ''}">ยืนยัน</button><button data-id="${appt.id}" data-status="completed" class="update-status-btn text-blue-600 hover:text-blue-900 ${appt.status !== 'confirmed' ? 'hidden' : ''}">เสร็จสิ้น</button><button data-id="${appt.id}" data-status="cancelled" class="update-status-btn text-red-600 hover:text-red-900 ${['completed', 'cancelled'].includes(appt.status) ? 'hidden' : ''}">ยกเลิก</button></td></tr>`; }).join('')}</tbody></table></div></div>`;
         }
-        function renderInbox(messages) {
+        function renderInbox() {
             const container = document.getElementById('admin-inbox-view');
             if (!container) return;
-            messages.sort((a, b) => b.sentAt.toMillis() - a.sentAt.toMillis());
-            container.innerHTML = `
-            <div class="bg-white p-6 rounded-2xl shadow-lg">
-                <h3 class="text-2xl font-bold mb-4 text-slate-800">กล่องข้อความ</h3>
-                <div class="space-y-4">
-                    ${messages.length === 0 ? '<p class="text-slate-500 text-center">ยังไม่มีข้อความ</p>' : 
-                    messages.map(msg => `
-                    <div class="border border-slate-200 p-4 rounded-xl">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="font-bold text-slate-800">${msg.senderName}</p>
-                                <p class="text-sm text-slate-500">${msg.senderContact}</p>
-                            </div>
-                            <div class="text-right flex-shrink-0 ml-4">
-                                 <p class="text-xs text-slate-400">${msg.sentAt ? msg.sentAt.toDate().toLocaleString('th-TH') : 'กำลังส่ง...'}</p>
-                                 <button data-id="${msg.id}" class="delete-message-btn text-red-500 text-xs hover:underline mt-1">ลบ</button>
-                            </div>
-                        </div>
-                        <p class="mt-2 text-slate-700 whitespace-pre-wrap">${msg.message}</p>
-                    </div>
-                    `).join('')}
-                </div>
-            </div>`;
+            allMessages.sort((a, b) => {
+                const dateA = a.createdAt?.toDate() || new Date(0);
+                const dateB = b.createdAt?.toDate() || new Date(0);
+                return dateB - dateA;
+            });
+            const badge = document.getElementById('inbox-badge');
+            if (badge) {
+                if (allMessages.length > 0) {
+                    badge.textContent = allMessages.length;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+            container.innerHTML = `<div class="bg-white p-6 rounded-2xl shadow-lg"><h3 class="text-2xl font-bold mb-4 text-slate-800">กล่องข้อความ</h3><div class="space-y-4">${allMessages.length === 0 ? '<p class="text-slate-500 text-center">ยังไม่มีข้อความ</p>' : 
+            allMessages.map(msg => `<div class="border border-slate-200 p-4 rounded-xl"><div class="flex justify-between items-start"><div><p class="font-bold text-slate-800">${msg.senderName}</p><p class="text-sm text-slate-500">${msg.senderContact}</p></div><div class="text-right flex-shrink-0 ml-4"><p class="text-xs text-slate-400">${msg.createdAt ? msg.createdAt.toDate().toLocaleString('th-TH') : 'กำลังส่ง...'}</p><button data-id="${msg.id}" class="delete-message-btn text-red-500 text-xs hover:underline mt-1">ลบ</button></div></div><p class="mt-2 text-slate-700 whitespace-pre-wrap">${msg.message}</p></div>`).join('')}</div></div>`;
         }
         function renderUsageView() {
             const container = document.getElementById('admin-usage-view');
             if(!container) return;
-            const projectId = firebaseConfig.projectId;
-            const usageUrl = `https://console.firebase.google.com/project/${projectId}/usage`;
-            
-            container.innerHTML = `
-             <div class="bg-white p-6 rounded-2xl shadow-lg">
-                 <h3 class="text-2xl font-bold mb-2 text-slate-800">การใช้งานและขีดจำกัด (Spark Plan)</h3>
-                 <p class="text-slate-500 mb-6">นี่คือสรุปโควต้าการใช้งานฟรีต่อวัน/เดือน หน้านี้ไม่แสดงผลการใช้งานจริงแบบเรียลไทม์</p>
-                 
-                 <div class="space-y-6">
-                    <div>
-                        <h4 class="font-semibold text-lg text-slate-700 mb-2">Firestore Database</h4>
-                        <div class="space-y-3">
-                            <div class="usage-item">
-                                <div class="flex justify-between mb-1 text-sm font-medium"><span class="text-slate-600">Document Reads</span><span><span class="font-bold">0</span> / 50,000 <span class="text-slate-500">ต่อวัน</span></span></div>
-                                <div class="progress-bar h-2.5"><div class="progress-bar-inner bg-green-400" style="width: 1%"></div></div>
-                            </div>
-                            <div class="usage-item">
-                                <div class="flex justify-between mb-1 text-sm font-medium"><span class="text-slate-600">Document Writes</span><span><span class="font-bold">0</span> / 20,000 <span class="text-slate-500">ต่อวัน</span></span></div>
-                                <div class="progress-bar h-2.5"><div class="progress-bar-inner bg-green-400" style="width: 1%"></div></div>
-                            </div>
-                             <div class="usage-item">
-                                <div class="flex justify-between mb-1 text-sm font-medium"><span class="text-slate-600">Document Deletes</span><span><span class="font-bold">0</span> / 20,000 <span class="text-slate-500">ต่อวัน</span></span></div>
-                                <div class="progress-bar h-2.5"><div class="progress-bar-inner bg-green-400" style="width: 1%"></div></div>
-                            </div>
-                        </div>
-                    </div>
-                     <div>
-                        <h4 class="font-semibold text-lg text-slate-700 mb-2">Hosting</h4>
-                        <div class="space-y-3">
-                            <div class="usage-item">
-                                <div class="flex justify-between mb-1 text-sm font-medium"><span class="text-slate-600">Data Transfer</span><span><span class="font-bold">0 GB</span> / 10 GB <span class="text-slate-500">ต่อเดือน</span></span></div>
-                                <div class="progress-bar h-2.5"><div class="progress-bar-inner bg-sky-400" style="width: 1%"></div></div>
-                            </div>
-                        </div>
-                    </div>
-                 </div>
-
-                 <div class="mt-8 border-t pt-6 text-center">
-                    <p class="mb-4 text-slate-600">เพื่อการแจ้งเตือนที่แม่นยำที่สุด เราขอแนะนำให้คุณตั้งค่า <strong>Budget Alert</strong> ใน Google Cloud เพื่อรับการแจ้งเตือนทางอีเมลเมื่อการใช้งานใกล้ถึงขีดจำกัด</p>
-                    <a href="${usageUrl}" target="_blank" class="inline-block text-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:shadow-lg transition">
-                        ตรวจสอบการใช้งานจริงใน Firebase Console
-                    </a>
-                 </div>
-            </div>
-            `;
+            container.innerHTML = `<div class="bg-white p-6 rounded-2xl shadow-lg"><h3 class="text-2xl font-bold mb-2 text-slate-800">การใช้งานและขีดจำกัด (Spark Plan)</h3><p class="text-slate-500 mb-6">นี่คือสรุปโควต้าการใช้งานฟรีต่อวัน/เดือน หน้านี้ไม่แสดงผลการใช้งานจริงแบบเรียลไทม์</p><div class="space-y-6"><div><h4 class="font-semibold text-lg text-slate-700 mb-2">Firestore Database</h4><div class="space-y-3"><div class="usage-item"><div class="flex justify-between mb-1 text-sm font-medium"><span class="text-slate-600">Document Reads</span><span><span class="font-bold">0</span> / 50,000 <span class="text-slate-500">ต่อวัน</span></span></div><div class="progress-bar h-2.5"><div class="progress-bar-inner bg-green-400" style="width: 1%"></div></div></div><div class="usage-item"><div class="flex justify-between mb-1 text-sm font-medium"><span class="text-slate-600">Document Writes</span><span><span class="font-bold">0</span> / 20,000 <span class="text-slate-500">ต่อวัน</span></span></div><div class="progress-bar h-2.5"><div class="progress-bar-inner bg-green-400" style="width: 1%"></div></div></div><div class="usage-item"><div class="flex justify-between mb-1 text-sm font-medium"><span class="text-slate-600">Document Deletes</span><span><span class="font-bold">0</span> / 20,000 <span class="text-slate-500">ต่อวัน</span></span></div><div class="progress-bar h-2.5"><div class="progress-bar-inner bg-green-400" style="width: 1%"></div></div></div></div></div><div><h4 class="font-semibold text-lg text-slate-700 mb-2">Hosting</h4><div class="space-y-3"><div class="usage-item"><div class="flex justify-between mb-1 text-sm font-medium"><span class="text-slate-600">Data Transfer</span><span><span class="font-bold">0 GB</span> / 10 GB <span class="text-slate-500">ต่อเดือน</span></span></div><div class="progress-bar h-2.5"><div class="progress-bar-inner bg-sky-400" style="width: 1%"></div></div></div></div></div></div></div>`;
+        }
+        function renderBillingFooter() {
+            const container = document.getElementById('billing-footer-alert');
+            if(!container) return;
+            const billingUrl = `https://console.cloud.google.com/billing`;
+            container.innerHTML = `<div class="bg-slate-100 p-4 rounded-lg text-center text-sm text-slate-600"><p>โปรเจกต์นี้ใช้แผน Spark Plan ซึ่งอาจมีค่าใช้จ่ายหากใช้งานเกินโควต้าฟรี <a href="${billingUrl}" target="_blank" class="font-semibold underline text-indigo-600 hover:text-indigo-800">แนะนำให้ตั้งค่า Budget Alert</a> เพื่อรับการแจ้งเตือน</p></div>`;
         }
         function openContactModal() {
             const modal = document.getElementById('contact-modal');
@@ -896,6 +814,7 @@
                 const deleteServiceBtn = e.target.closest('.delete-service-btn');
                 const deleteMessageBtn = e.target.closest('.delete-message-btn');
                 const saveNoteBtn = e.target.id === 'save-note-btn';
+                const exportCsvBtn = e.target.closest('#export-csv-btn');
                 if (updateBtn) updateDoc(doc(db, "appointments", updateBtn.dataset.id), { status: updateBtn.dataset.status });
                 if (noteIcon) openNoteModal(noteIcon.dataset.id, noteIcon.dataset.note);
                 if (addServiceBtn) {
@@ -934,6 +853,7 @@
                     updateDoc(doc(db, "appointments", noteModalApptId), { note: note });
                     document.getElementById('note-modal').classList.add('hidden');
                 }
+                if(exportCsvBtn) exportToCsv();
             });
             document.body.addEventListener('change', (e) => {
                 if(e.target.classList.contains('service-item-input')) {
@@ -961,12 +881,10 @@
                     if (slotDoc.exists()) { throw "Slot already booked"; }
                     const now = new Date();
                     const datePrefix = `${String(now.getDate()).padStart(2, '0')}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getFullYear() + 543).slice(-2)}`;
-                    const todayStr = now.toISOString().split('T')[0];
-                    const qRun = query(collection(db, "appointments"), where("createdOnDate", "==", todayStr));
-                    const runSnap = await getDocs(qRun);
-                    const newId = `${datePrefix}-${String(runSnap.size).padStart(2, '0')}`;
+                    const randomPart = Math.random().toString(36).substring(2, 6).toUpperCase();
+                    const newId = `${datePrefix}-${randomPart}`;
                     const newAppointmentRef = doc(collection(db, "appointments"));
-                    transaction.set(newAppointmentRef, { bookingId: newId, patientName, patientContact, service: document.getElementById('service').value, date: selectedDateForBooking, time: selectedTimeForBooking, status: 'pending', createdAt: serverTimestamp(), createdOnDate: todayStr, note: "" });
+                    transaction.set(newAppointmentRef, { bookingId: newId, patientName, patientContact, service: document.getElementById('service').value, date: selectedDateForBooking, time: selectedTimeForBooking, status: 'pending', createdAt: serverTimestamp(), createdOnDate: now.toISOString().split('T')[0], note: "" });
                     transaction.set(slotRef, { appointmentId: newAppointmentRef.id });
                     document.getElementById('booking-id-display').textContent = newId;
                 });
@@ -1013,23 +931,23 @@
             if (unsubscribeAllAppointments) unsubscribeAllAppointments();
             if (unsubscribeMessages) unsubscribeMessages();
             
+            showLoading(true);
             if(user) {
-                showLoading(true);
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if(userDoc.exists() && userDoc.data().role === 'staff') {
                     document.getElementById('admin-welcome').textContent = `สวัสดี, ${userDoc.data().fullName}`;
                     listenToAllAppointments();
                     listenToMessages();
                     populateSettingsForm();
+                    renderBillingFooter();
                     showView('admin-dashboard-view');
                 } else {
-                    // This case is handled by handleLogin, this is a fallback for safety.
-                    await signOut(auth); 
+                    await signOut(auth);
                 }
-                 showLoading(false);
             } else {
                 showView('welcome-view');
             }
+            showLoading(false);
         });
         const showLoading = (isLoading) => loadingOverlay.classList.toggle('hidden', !isLoading);
         function getStatusInfo(status) { switch (status) { case 'pending': return { bg: 'bg-amber-100', text: 'text-amber-800' }; case 'confirmed': return { bg: 'bg-green-100', text: 'text-green-800' }; case 'completed': return { bg: 'bg-sky-100', text: 'text-sky-800' }; case 'cancelled': return { bg: 'bg-red-100', text: 'text-red-800' }; default: return { bg: 'bg-slate-100', text: 'text-slate-800' }; } }
@@ -1038,6 +956,31 @@
             const temp = document.createElement('div');
             temp.textContent = str;
             return temp.innerHTML;
+        }
+        function exportToCsv() {
+            const headers = ["Booking ID", "Patient Name", "Contact", "Service", "Date", "Time", "Status", "Note"];
+            const rows = allAppointments.map(appt => [
+                `"${appt.bookingId}"`,
+                `"${appt.patientName}"`,
+                `"${appt.patientContact}"`,
+                `"${appt.service}"`,
+                `"${appt.date}"`,
+                `"${appt.time}"`,
+                `"${translateStatus(appt.status)}"`,
+                `"${(appt.note || '').replace(/"/g, '""')}"`
+            ]);
+
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF" // UTF-8 BOM
+                + headers.join(",") + "\n" 
+                + rows.map(e => e.join(",")).join("\n");
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `clinic_report_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link); 
+            link.click();
+            document.body.removeChild(link);
         }
 
     </script>
