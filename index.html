@@ -809,15 +809,29 @@
         function renderStaffList() {
             const container = document.getElementById('staff-list-container');
             if (!container) return;
+            const currentUserId = auth.currentUser ? auth.currentUser.uid : null;
             if (allStaff.length === 0) {
                 container.innerHTML = '<p class="text-slate-500 text-sm">ไม่มีข้อมูลเจ้าหน้าที่</p>';
                 return;
             }
             container.innerHTML = allStaff.map(staff => `
-                <div class="flex items-center justify-between p-2 bg-slate-100 rounded-lg">
-                    <div>
-                        <p class="font-medium text-slate-800">${staff.fullName}</p>
+                <div class="flex items-center justify-between p-3 bg-slate-100 rounded-lg" id="staff-item-${staff.id}">
+                    <div class="flex-grow">
+                        <p class="font-medium text-slate-800 staff-name-display">${staff.fullName}</p>
+                        <input type="text" value="${staff.fullName}" class="modern-input w-full staff-name-input hidden"/>
                         <p class="text-sm text-slate-500">${staff.email}</p>
+                    </div>
+                    <div class="flex items-center gap-3 ml-4">
+                        <button class="edit-staff-btn" data-id="${staff.id}">
+                            <svg class="w-5 h-5 text-slate-500 hover:text-indigo-600 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 3.732z"></path></svg>
+                        </button>
+                        <button class="save-staff-btn hidden" data-id="${staff.id}">
+                             <svg class="w-5 h-5 text-slate-500 hover:text-green-600 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        </button>
+                        ${staff.id !== currentUserId ? `
+                        <button class="delete-staff-btn" data-id="${staff.id}">
+                            <svg class="w-5 h-5 text-slate-500 hover:text-red-600 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>` : ''}
                     </div>
                 </div>
             `).join('');
@@ -928,6 +942,10 @@
                 const deleteMessageBtn = e.target.closest('.delete-message-btn');
                 const saveNoteBtn = e.target.id === 'save-note-btn';
                 const exportCsvBtn = e.target.closest('#export-csv-btn');
+                const editStaffBtn = e.target.closest('.edit-staff-btn');
+                const saveStaffBtn = e.target.closest('.save-staff-btn');
+                const deleteStaffBtn = e.target.closest('.delete-staff-btn');
+
                 if (updateBtn) updateDoc(doc(db, "appointments", updateBtn.dataset.id), { status: updateBtn.dataset.status });
                 if (noteIcon) openNoteModal(noteIcon.dataset.id, noteIcon.dataset.note);
                 if (addServiceBtn) {
@@ -966,7 +984,33 @@
                     updateDoc(doc(db, "appointments", noteModalApptId), { note: note });
                     document.getElementById('note-modal').classList.add('hidden');
                 }
-                if(exportCsvBtn) exportToCsv();
+                if (exportCsvBtn) exportToCsv();
+                if (editStaffBtn) {
+                    const staffId = editStaffBtn.dataset.id;
+                    const staffItem = document.getElementById(`staff-item-${staffId}`);
+                    staffItem.querySelector('.staff-name-display').classList.add('hidden');
+                    staffItem.querySelector('.staff-name-input').classList.remove('hidden');
+                    editStaffBtn.classList.add('hidden');
+                    staffItem.querySelector('.save-staff-btn').classList.remove('hidden');
+                }
+                if (saveStaffBtn) {
+                    const staffId = saveStaffBtn.dataset.id;
+                    const staffItem = document.getElementById(`staff-item-${staffId}`);
+                    const newName = staffItem.querySelector('.staff-name-input').value.trim();
+                    if (newName) {
+                        handleUpdateStaffName(staffId, newName);
+                    }
+                    staffItem.querySelector('.staff-name-display').classList.remove('hidden');
+                    staffItem.querySelector('.staff-name-input').classList.add('hidden');
+                    saveStaffBtn.classList.add('hidden');
+                    staffItem.querySelector('.edit-staff-btn').classList.remove('hidden');
+                }
+                if (deleteStaffBtn) {
+                    const staffId = deleteStaffBtn.dataset.id;
+                    showConfirmationModal('คุณแน่ใจหรือไม่ว่าต้องการลบเจ้าหน้าที่คนนี้? (การกระทำนี้จะลบข้อมูลออกจากระบบ แต่จะไม่ลบบัญชี Authentication)', () => {
+                        handleDeleteStaff(staffId);
+                    });
+                }
 
                 const paginationBtn = e.target.closest('.pagination-btn');
                 if(paginationBtn) {
@@ -1044,6 +1088,34 @@
                 } else {
                     errEl.textContent = 'เกิดข้อผิดพลาด: ' + error.message;
                 }
+            } finally {
+                showLoading(false);
+            }
+        }
+        async function handleUpdateStaffName(staffId, newName) {
+            showLoading(true);
+            try {
+                const staffRef = doc(db, "users", staffId);
+                await updateDoc(staffRef, { fullName: newName });
+                showToast('อัปเดตชื่อสำเร็จ!');
+            } catch (error) {
+                console.error("Error updating staff name:", error);
+                showToast('เกิดข้อผิดพลาดในการอัปเดต', true);
+            } finally {
+                showLoading(false);
+            }
+        }
+        async function handleDeleteStaff(staffId) {
+            showLoading(true);
+            try {
+                // NOTE: This only deletes the Firestore record, not the Firebase Auth user.
+                // A Cloud Function is required for full user deletion.
+                const staffRef = doc(db, "users", staffId);
+                await deleteDoc(staffRef);
+                showToast('ลบเจ้าหน้าที่สำเร็จ!');
+            } catch (error) {
+                console.error("Error deleting staff:", error);
+                showToast('เกิดข้อผิดพลาดในการลบ', true);
             } finally {
                 showLoading(false);
             }
@@ -1205,3 +1277,4 @@
     </script>
 </body>
 </html>
+
