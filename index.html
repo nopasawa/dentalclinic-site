@@ -218,6 +218,10 @@
                             <label for="service" class="block text-sm font-medium text-slate-600 mb-1">เลือกบริการ</label>
                             <select id="service" name="service" required class="modern-input w-full"></select>
                         </div>
+                        <div class="md:col-span-2">
+                            <label for="treatment-right" class="block text-sm font-medium text-slate-600 mb-1">สิทธิการรักษา</label>
+                            <select id="treatment-right" name="treatment-right" required class="modern-input w-full"></select>
+                        </div>
                     </div>
                     <div class="border-t border-slate-200 pt-6">
                          <div id="calendar-container">
@@ -400,25 +404,14 @@
         const itemsPerPage = 10;
         let announcementEditor;
         let newsEditor;
-        const allPossibleTimeSlots = [
-            "07:00", "07:20", "07:40", "08:00", "08:20", "08:40",
-            "09:00", "09:20", "09:40", "10:00", "10:20", "10:40",
-            "11:00", "11:20", "11:40", "13:00", "13:20", "13:40",
-            "14:00", "14:20", "14:40", "15:00", "15:20", "15:40",
-            "16:00", "16:20", "16:40", "17:00", "17:20", "17:40",
-            "18:00", "18:20", "18:40"
-        ];
-
+       
 
         const DEFAULT_CONFIG = {
             clinicName: "คลินิกทันตกรรม",
             services: ["ตรวจสุขภาพฟัน", "ขูดหินปูน", "อุดฟัน"],
+            treatmentRights: ["สิทธิบัตรทอง", "ประกันสังคม", "ชำระเงินเอง"],
             operatingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-            availableTimeSlots: [
-                "09:00", "09:20", "09:40", "10:00", "10:20", "10:40", "11:00", "11:20", "11:40", 
-                "13:00", "13:20", "13:40", "14:00", "14:20", "14:40", "15:00", "15:20", "15:40",
-                "16:00", "16:20", "16:40"
-            ],
+            operatingHours: { open: "09:00", close: "17:00" },
             announcement: "",
             announcementBackup: "",
             blockedDates: [],
@@ -473,7 +466,13 @@
             }
             const serviceEl = document.getElementById('service');
             if (serviceEl) {
+                if (!clinicConfig.services) clinicConfig.services = [];
                 serviceEl.innerHTML = clinicConfig.services.map(s => `<option value="${s}">${s}</option>`).join('');
+            }
+             const treatmentRightEl = document.getElementById('treatment-right');
+            if (treatmentRightEl) {
+                if (!clinicConfig.treatmentRights) clinicConfig.treatmentRights = [];
+                treatmentRightEl.innerHTML = clinicConfig.treatmentRights.map(s => `<option value="${s}">${s}</option>`).join('');
             }
             setupDateTimePickers();
         }
@@ -557,7 +556,7 @@
             for (let i = 0; i < firstDay.getDay(); i++) { calendarGrid.innerHTML += '<div></div>'; }
             
             for (let day = 1; day <= lastDay.getDate(); day++) {
-                const date = new Date(year, month, day, 12); // Use midday to avoid timezone issues
+                const date = new Date(year, month, day, 12);
                 const today = new Date();
                 today.setHours(0,0,0,0);
 
@@ -587,14 +586,26 @@
             timeSlotsGrid.innerHTML = '';
             
             const dayBookedSlots = dateStr ? bookedSlots.filter(slotId => slotId.startsWith(dateStr)) : [];
+            const { open, close } = clinicConfig.operatingHours;
+            const [openHour, openMin] = open.split(':').map(Number);
+            const [closeHour, closeMin] = close.split(':').map(Number);
             
-            if (!clinicConfig.availableTimeSlots || clinicConfig.availableTimeSlots.length === 0) {
-                timeSlotsGrid.innerHTML = '<p class="col-span-full text-slate-500">ไม่มีช่วงเวลาให้บริการ</p>';
-                return;
-            }
-
+            let currentHour = openHour;
+            let currentMin = openMin;
             let hasSlot = false;
-            clinicConfig.availableTimeSlots.forEach(timeString => {
+            
+            while (currentHour < closeHour || (currentHour === closeHour && currentMin < closeMin)) {
+                const timeString = `${String(currentHour).padStart(2, '0')}:${String(currentMin).padStart(2, '0')}`;
+                
+                if (timeString === "12:00" || timeString === "12:30") {
+                    currentMin += 30;
+                    if (currentMin >= 60) {
+                        currentHour++;
+                        currentMin -= 60;
+                    }
+                    continue;
+                }
+
                 hasSlot = true;
                 const slotId = `${dateStr}_${timeString.replace(':', '-')}`;
                 const isBooked = dayBookedSlots.includes(slotId);
@@ -606,8 +617,13 @@
                     classes += ' selected';
                 }
                 timeSlotsGrid.innerHTML += `<button type="button" class="${classes}" data-time="${timeString}" ${isBooked ? 'disabled' : ''}>${timeString}</button>`;
-            });
-
+                
+                currentMin += 30;
+                if (currentMin >= 60) {
+                    currentHour++;
+                    currentMin -= 60;
+                }
+            }
              if(!hasSlot) {
                 timeSlotsGrid.innerHTML = '<p class="col-span-full text-slate-500">ไม่มีช่วงเวลาให้บริการ</p>';
             }
@@ -641,7 +657,7 @@
                 paginationHtml += '</div>';
             }
 
-            container.innerHTML = `<div class="bg-white p-6 rounded-2xl shadow-lg"><div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-slate-800">รายการนัดหมายทั้งหมด</h3><button id="export-csv-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg><span>Export Report (CSV)</span></button></div><div class="overflow-x-auto"><table class="min-w-full"><thead class="border-b border-slate-200"><tr><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">รหัสการจอง</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">วันและเวลา</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">ชื่อคนไข้</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">บริการ</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">สถานะ</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">จัดการ</th></tr></thead><tbody class="divide-y divide-slate-100">${paginatedAppointments.map(appt => { const statusInfo = getStatusInfo(appt.status); const noteIcon = `<svg data-id="${appt.id}" data-note="${appt.note || ''}" class="note-icon cursor-pointer inline-block w-5 h-5 ${appt.note ? 'text-blue-500' : 'text-gray-400'}" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 12V7a2 2 0 012-2h2.586l-4 4H5zM3 15a2 2 0 012-2h9.586l-2.293 2.293A1 1 0 0112 16H5a2 2 0 01-2-2z"></path></svg>`; return `<tr><td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-500">${appt.bookingId}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">${new Date(appt.date).toLocaleDateString('th-TH')} ${appt.time}</td><td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${appt.patientName} ${noteIcon}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">${appt.service}</td><td class="px-6 py-4 whitespace-nowrap"><span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${statusInfo.bg} ${statusInfo.text}">${translateStatus(appt.status)}</span></td><td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2"><button data-id="${appt.id}" data-status="confirmed" class="update-status-btn text-green-600 hover:text-green-900 ${appt.status !== 'pending' ? 'hidden' : ''}">ยืนยัน</button><button data-id="${appt.id}" data-status="completed" class="update-status-btn text-blue-600 hover:text-blue-900 ${appt.status !== 'confirmed' ? 'hidden' : ''}">เสร็จสิ้น</button><button data-id="${appt.id}" data-status="cancelled" class="update-status-btn text-red-600 hover:text-red-900 ${['completed', 'cancelled'].includes(appt.status) ? 'hidden' : ''}">ยกเลิก</button></td></tr>`; }).join('')}</tbody></table></div>${paginationHtml}</div>`;
+            container.innerHTML = `<div class="bg-white p-6 rounded-2xl shadow-lg"><div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-slate-800">รายการนัดหมายทั้งหมด</h3><button id="export-csv-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg><span>Export Report (CSV)</span></button></div><div class="overflow-x-auto"><table class="min-w-full"><thead class="border-b border-slate-200"><tr><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">รหัสการจอง</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">วันและเวลา</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">ชื่อคนไข้</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">บริการ</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">สิทธิการรักษา</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">สถานะ</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">จัดการ</th></tr></thead><tbody class="divide-y divide-slate-100">${paginatedAppointments.map(appt => { const statusInfo = getStatusInfo(appt.status); const noteIcon = `<svg data-id="${appt.id}" data-note="${appt.note || ''}" class="note-icon cursor-pointer inline-block w-5 h-5 ${appt.note ? 'text-blue-500' : 'text-gray-400'}" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 12V7a2 2 0 012-2h2.586l-4 4H5zM3 15a2 2 0 012-2h9.586l-2.293 2.293A1 1 0 0112 16H5a2 2 0 01-2-2z"></path></svg>`; return `<tr><td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-500">${appt.bookingId}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">${new Date(appt.date).toLocaleDateString('th-TH')} ${appt.time}</td><td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${appt.patientName} ${noteIcon}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">${appt.service}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">${appt.treatmentRight || ''}</td><td class="px-6 py-4 whitespace-nowrap"><span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${statusInfo.bg} ${statusInfo.text}">${translateStatus(appt.status)}</span></td><td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2"><button data-id="${appt.id}" data-status="confirmed" class="update-status-btn text-green-600 hover:text-green-900 ${appt.status !== 'pending' ? 'hidden' : ''}">ยืนยัน</button><button data-id="${appt.id}" data-status="completed" class="update-status-btn text-blue-600 hover:text-blue-900 ${appt.status !== 'confirmed' ? 'hidden' : ''}">เสร็จสิ้น</button><button data-id="${appt.id}" data-status="cancelled" class="update-status-btn text-red-600 hover:text-red-900 ${['completed', 'cancelled'].includes(appt.status) ? 'hidden' : ''}">ยกเลิก</button></td></tr>`; }).join('')}</tbody></table></div>${paginationHtml}</div>`;
         }
         function renderInbox(page = 1) {
             const container = document.getElementById('admin-inbox-view');
@@ -856,10 +872,14 @@
                                  <label class="block text-sm font-medium text-slate-600 mb-2">วันที่เปิดให้บริการ</label>
                                  <div id="operating-days-inputs" class="mt-2 grid grid-cols-2 md:grid-cols-4 gap-4"></div>
                              </div>
-                             <div>
-                                 <label class="block text-sm font-medium text-slate-600 mb-2">เลือกช่วงเวลาที่เปิดให้บริการ (ช่วงละ 20 นาที)</label>
-                                 <div id="time-slots-settings-grid" class="mt-2 grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2">
-                                     <!-- Time slots will be injected here -->
+                            <div class="grid grid-cols-2 gap-4">
+                                 <div>
+                                     <label for="open-time-input" class="block text-sm font-medium text-slate-600 mb-1">เวลาเปิด</label>
+                                     <input type="time" id="open-time-input" class="modern-input w-full">
+                                 </div>
+                                 <div>
+                                     <label for="close-time-input" class="block text-sm font-medium text-slate-600 mb-1">เวลาปิด</label>
+                                     <input type="time" id="close-time-input" class="modern-input w-full">
                                  </div>
                              </div>
                          </div>
@@ -869,6 +889,14 @@
                               <div class="flex gap-3">
                                    <input type="text" id="new-service-input" placeholder="เพิ่มบริการใหม่" class="modern-input flex-grow">
                                    <button type="button" id="add-service-btn" class="bg-indigo-600 text-white px-4 py-2.5 rounded-lg font-semibold">เพิ่ม</button>
+                              </div>
+                         </div>
+                         <div class="space-y-4">
+                              <h4 class="font-semibold text-lg text-slate-700 border-b pb-2">จัดการสิทธิการรักษา</h4>
+                              <div id="treatment-rights-list" class="space-y-2"></div>
+                              <div class="flex gap-3">
+                                   <input type="text" id="new-treatment-right-input" placeholder="เพิ่มสิทธิการรักษาใหม่" class="modern-input flex-grow">
+                                   <button type="button" id="add-treatment-right-btn" class="bg-indigo-600 text-white px-4 py-2.5 rounded-lg font-semibold">เพิ่ม</button>
                               </div>
                          </div>
                          <button type="submit" class="w-full text-lg bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-xl shadow-md hover:shadow-lg transition">บันทึกการตั้งค่า</button>
@@ -905,6 +933,8 @@
                 announcementEditor.root.innerHTML = clinicConfig.announcementBackup;
             }
 
+            document.getElementById('open-time-input').value = clinicConfig.operatingHours.open;
+            document.getElementById('close-time-input').value = clinicConfig.operatingHours.close;
             document.getElementById('contact-name-input').value = clinicConfig.contactName;
             document.getElementById('contact-phone-input').value = clinicConfig.contactPhone;
             const daysContainer = document.getElementById('operating-days-inputs');
@@ -913,7 +943,7 @@
             renderBlockedDatesList();
             renderServicesList();
             renderStaffList();
-            renderTimeSlotSettings();
+            renderTreatmentRightsList();
         }
 
         function renderBlockedDatesList() {
@@ -926,6 +956,13 @@
             const listContainer = document.getElementById('services-list');
             listContainer.innerHTML = clinicConfig.services.map((service, index) => `<div class="flex items-center justify-between p-2 bg-slate-100 rounded-lg"><input type="text" value="${service}" data-index="${index}" class="service-item-input bg-transparent border-0 focus:ring-0 w-full font-medium"><button type="button" data-index="${index}" class="delete-service-btn text-red-500 hover:text-red-700 font-bold">ลบ</button></div>`).join('');
         }
+        function renderTreatmentRightsList() {
+            const listContainer = document.getElementById('treatment-rights-list');
+            if (!listContainer) return;
+            if (!clinicConfig.treatmentRights) clinicConfig.treatmentRights = [];
+            listContainer.innerHTML = clinicConfig.treatmentRights.map((right, index) => `<div class="flex items-center justify-between p-2 bg-slate-100 rounded-lg"><input type="text" value="${right}" data-index="${index}" class="treatment-right-item-input bg-transparent border-0 focus:ring-0 w-full font-medium"><button type="button" data-index="${index}" class="delete-treatment-right-btn text-red-500 hover:text-red-700 font-bold">ลบ</button></div>`).join('');
+        }
+
         function renderStaffList() {
             const container = document.getElementById('staff-list');
             if(!container || !allStaff) return;
@@ -948,19 +985,6 @@
                     </div>
                 </div>
             `).join('');
-        }
-        function renderTimeSlotSettings() {
-            const container = document.getElementById('time-slots-settings-grid');
-            if (!container) return;
-
-            if (!clinicConfig.availableTimeSlots) {
-                clinicConfig.availableTimeSlots = [];
-            }
-
-            container.innerHTML = allPossibleTimeSlots.map(time => {
-                const isActive = clinicConfig.availableTimeSlots.includes(time);
-                return `<button type="button" data-time="${time}" class="time-slot-setting p-2 rounded-lg ${isActive ? 'active' : ''}">${time}</button>`;
-            }).join('');
         }
 
         function setupEventListeners() {
@@ -1021,22 +1045,6 @@
                             deleteDoc(doc(db, "users", staffId));
                         }
                     );
-                }
-                const timeSlotSettingBtn = e.target.closest('.time-slot-setting');
-                if (timeSlotSettingBtn) {
-                    const time = timeSlotSettingBtn.dataset.time;
-                    if (!clinicConfig.availableTimeSlots) {
-                        clinicConfig.availableTimeSlots = [];
-                    }
-                    const index = clinicConfig.availableTimeSlots.indexOf(time);
-                    if (index > -1) {
-                        clinicConfig.availableTimeSlots.splice(index, 1);
-                        timeSlotSettingBtn.classList.remove('active');
-                    } else {
-                        clinicConfig.availableTimeSlots.push(time);
-                        clinicConfig.availableTimeSlots.sort();
-                        timeSlotSettingBtn.classList.add('active');
-                    }
                 }
             });
 
@@ -1125,6 +1133,8 @@
                 const deleteBlockedDateBtn = e.target.closest('.delete-blocked-date-btn');
                 const addServiceBtn = e.target.id === 'add-service-btn';
                 const deleteServiceBtn = e.target.closest('.delete-service-btn');
+                const addTreatmentRightBtn = e.target.id === 'add-treatment-right-btn';
+                const deleteTreatmentRightBtn = e.target.closest('.delete-treatment-right-btn');
                 const deleteMessageBtn = e.target.closest('.delete-message-btn');
                 const saveNoteBtn = e.target.id === 'save-note-btn';
                 const exportCsvBtn = e.target.closest('#export-csv-btn');
@@ -1140,10 +1150,24 @@
                         renderServicesList();
                     }
                 }
-                if (deleteServiceBtn) {
+                 if (deleteServiceBtn) {
                     const index = deleteServiceBtn.dataset.index;
                     clinicConfig.services.splice(index, 1);
                     renderServicesList();
+                }
+                if (addTreatmentRightBtn) {
+                    const input = document.getElementById('new-treatment-right-input');
+                    if (input && input.value.trim()) {
+                        if (!clinicConfig.treatmentRights) clinicConfig.treatmentRights = [];
+                        clinicConfig.treatmentRights.push(input.value.trim());
+                        input.value = '';
+                        renderTreatmentRightsList();
+                    }
+                }
+                if (deleteTreatmentRightBtn) {
+                    const index = deleteTreatmentRightBtn.dataset.index;
+                    clinicConfig.treatmentRights.splice(index, 1);
+                    renderTreatmentRightsList();
                 }
                 if (addBlockedDateBtn) {
                      const dateInput = document.getElementById('new-blocked-date-input');
@@ -1192,6 +1216,10 @@
                     const index = e.target.dataset.index;
                     clinicConfig.services[index] = e.target.value.trim();
                 }
+                 if(e.target.classList.contains('treatment-right-item-input')) {
+                    const index = e.target.dataset.index;
+                    clinicConfig.treatmentRights[index] = e.target.value.trim();
+                }
             });
         }
         async function handleLogin(e) { e.preventDefault(); showLoading(true); const errEl = document.getElementById('login-error'); errEl.textContent = ''; try { const userCredential = await signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-password').value); const user = userCredential.user; const userDocRef = doc(db, "users", user.uid); const userDoc = await getDoc(userDocRef); if (userDoc.exists() && userDoc.data().role === 'staff') { /* Success, onAuthStateChanged will handle UI */ } else { await signOut(auth); errEl.textContent = "บัญชีนี้ไม่มีสิทธิ์ในการเข้าถึง"; } } catch (error) { errEl.textContent = "อีเมลหรือรหัสผ่านไม่ถูกต้อง"; } finally { showLoading(false); } }
@@ -1236,6 +1264,8 @@
             const patientName = sanitizeHTML(document.getElementById('patient-name').value);
             const patientContact = sanitizeHTML(document.getElementById('patient-contact').value);
             const patientAge = sanitizeHTML(document.getElementById('patient-age').value);
+            const treatmentRight = document.getElementById('treatment-right').value;
+
             const phoneRegex = /^[0-9]{10}$/;
             if (!phoneRegex.test(patientContact)) {
                 msgEl.textContent = 'กรุณากรอกเบอร์โทรศัพท์ 10 หลักให้ถูกต้อง';
@@ -1268,6 +1298,7 @@
                         patientContact, 
                         patientAge,
                         service: document.getElementById('service').value, 
+                        treatmentRight: treatmentRight,
                         date: selectedDateForBooking, 
                         time: selectedTimeForBooking, 
                         status: 'pending', 
@@ -1289,6 +1320,7 @@
                         <p><strong>อายุ:</strong> ${patientAge} ปี</p>
                         <p><strong>เบอร์โทร:</strong> ${patientContact}</p>
                         <p><strong>ประเภทการรักษา:</strong> ${document.getElementById('service').value}</p>
+                        <p><strong>สิทธิการรักษา:</strong> ${treatmentRight}</p>
                         <hr class="my-2 border-slate-200">
                         <p class="text-sm text-center text-slate-600 mt-4">กรุณามาตามวันและเวลาที่จอง<br>หากมีข้อสงสัย โทร. ${clinicConfig.contactPhone}</p>
                     `;
@@ -1308,7 +1340,7 @@
                 showLoading(false);
             }
         }
-        async function handleStatusCheck(e) { e.preventDefault(); showLoading(true); const id = sanitizeHTML(document.getElementById('booking-id-input').value.trim()); const resultDiv = document.getElementById('status-result'); resultDiv.innerHTML = ''; if (!id) { resultDiv.innerHTML = `<p class="text-red-500 text-center font-semibold">กรุณากรอกรหัสการจอง</p>`; showLoading(false); return; } try { const q = query(collection(db, "appointments"), where("bookingId", "==", id)); const snap = await getDocs(q); if (!snap.empty) { const docSnap = snap.docs[0]; const appt = docSnap.data(); const statusInfo = getStatusInfo(appt.status); const slotId = `${appt.date}_${appt.time.replace(':', '-')}`; const cancelBtn = (appt.status === 'pending' || appt.status === 'confirmed') ? `<button id="patient-cancel-btn" data-id="${docSnap.id}" data-slot-id="${slotId}" class="w-full mt-4 bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-lg transition font-semibold">ยกเลิกนัดหมาย</button>` : ''; resultDiv.innerHTML = `<div class="border rounded-xl p-4 ${statusInfo.bg} bg-opacity-20"><h4 class="font-bold text-lg text-slate-800">รายละเอียดการจอง</h4><p><strong>บริการ:</strong> ${sanitizeHTML(appt.service)}</p><p><strong>วันที่:</strong> ${new Date(appt.date + 'T00:00:00').toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric'})} เวลา ${appt.time} น.</p><div class="mt-2"><strong>สถานะ:</strong> <span class="text-sm font-medium px-2 py-1 rounded-full ${statusInfo.bg} ${statusInfo.text}">${translateStatus(appt.status)}</span></div></div>${cancelBtn}`; } else { resultDiv.innerHTML = `<p class="text-red-500 text-center font-semibold">ไม่พบข้อมูลการจองสำหรับรหัสนี้</p>`; } } catch (error) { resultDiv.innerHTML = `<p class="text-red-500 text-center font-semibold">เกิดข้อผิดพลาด</p>`; } finally { showLoading(false); } }
+        async function handleStatusCheck(e) { e.preventDefault(); showLoading(true); const id = sanitizeHTML(document.getElementById('booking-id-input').value.trim()); const resultDiv = document.getElementById('status-result'); resultDiv.innerHTML = ''; if (!id) { resultDiv.innerHTML = `<p class="text-red-500 text-center font-semibold">กรุณากรอกรหัสการจอง</p>`; showLoading(false); return; } try { const q = query(collection(db, "appointments"), where("bookingId", "==", id)); const snap = await getDocs(q); if (!snap.empty) { const docSnap = snap.docs[0]; const appt = docSnap.data(); const statusInfo = getStatusInfo(appt.status); const slotId = `${appt.date}_${appt.time.replace(':', '-')}`; const cancelBtn = (appt.status === 'pending' || appt.status === 'confirmed') ? `<button id="patient-cancel-btn" data-id="${docSnap.id}" data-slot-id="${slotId}" class="w-full mt-4 bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-lg transition font-semibold">ยกเลิกนัดหมาย</button>` : ''; resultDiv.innerHTML = `<div class="border rounded-xl p-4 ${statusInfo.bg} bg-opacity-20"><h4 class="font-bold text-lg text-slate-800">รายละเอียดการจอง</h4><p><strong>บริการ:</strong> ${sanitizeHTML(appt.service)}</p><p><strong>สิทธิการรักษา:</strong> ${sanitizeHTML(appt.treatmentRight || 'ไม่ได้ระบุ')}</p><p><strong>วันที่:</strong> ${new Date(appt.date + 'T00:00:00').toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric'})} เวลา ${appt.time} น.</p><div class="mt-2"><strong>สถานะ:</strong> <span class="text-sm font-medium px-2 py-1 rounded-full ${statusInfo.bg} ${statusInfo.text}">${translateStatus(appt.status)}</span></div></div>${cancelBtn}`; } else { resultDiv.innerHTML = `<p class="text-red-500 text-center font-semibold">ไม่พบข้อมูลการจองสำหรับรหัสนี้</p>`; } } catch (error) { resultDiv.innerHTML = `<p class="text-red-500 text-center font-semibold">เกิดข้อผิดพลาด</p>`; } finally { showLoading(false); } }
         async function handleSettingsSubmit(e) { 
             e.preventDefault(); 
             showLoading(true); 
@@ -1316,13 +1348,16 @@
                 ...clinicConfig, 
                 clinicName: sanitizeHTML(document.getElementById('clinic-name-input').value), 
                 announcementBackup: announcementEditor.root.innerHTML,
-                availableTimeSlots: clinicConfig.availableTimeSlots,
+                operatingHours: { open: document.getElementById('open-time-input').value, close: document.getElementById('close-time-input').value }, 
                 operatingDays: Array.from(document.querySelectorAll('.operating-day-cb:checked')).map(cb => cb.value), 
                 contactName: sanitizeHTML(document.getElementById('contact-name-input').value), 
-                contactPhone: sanitizeHTML(document.getElementById('contact-phone-input').value) 
+                contactPhone: sanitizeHTML(document.getElementById('contact-phone-input').value),
+                services: clinicConfig.services,
+                treatmentRights: clinicConfig.treatmentRights,
+                blockedDates: clinicConfig.blockedDates,
             }; 
             try { 
-                await setDoc(doc(db, "clinic_settings", "config"), newConfig, { merge: true }); 
+                await setDoc(doc(db, "clinic_settings", "config"), newConfig); 
                 clinicConfig = newConfig; 
                 updatePublicUI(); 
                 populateSettingsForm(); 
@@ -1432,12 +1467,13 @@
             return temp.innerHTML;
         }
         function exportToCsv() {
-            const headers = ["Booking ID", "Patient Name", "Contact", "Service", "Date", "Time", "Status", "Note"];
+            const headers = ["Booking ID", "Patient Name", "Contact", "Service", "Treatment Right", "Date", "Time", "Status", "Note"];
             const rows = allAppointments.map(appt => [
                 `"${appt.bookingId}"`,
                 `"${appt.patientName}"`,
                 `"${appt.patientContact}"`,
                 `"${appt.service}"`,
+                `"${appt.treatmentRight || ''}"`,
                 `"${appt.date}"`,
                 `"${appt.time}"`,
                 `"${translateStatus(appt.status)}"`,
@@ -1460,3 +1496,4 @@
     </script>
 </body>
 </html>
+
