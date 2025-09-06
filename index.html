@@ -187,8 +187,8 @@
         <div id="news-board-view" class="view">
              <div class="bg-white p-8 rounded-2xl shadow-lg max-w-4xl mx-auto">
                  <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-3xl font-bold text-slate-800">ข่าวประชาสัมพันธ์</h2>
-                    <button id="news-back-to-home" class="text-indigo-600 hover:text-indigo-800 font-semibold">กลับหน้าหลัก</button>
+                     <h2 class="text-3xl font-bold text-slate-800">ข่าวประชาสัมพันธ์</h2>
+                     <button id="news-back-to-home" class="text-indigo-600 hover:text-indigo-800 font-semibold">กลับหน้าหลัก</button>
                  </div>
                  <div id="news-list-container" class="space-y-6">
                      <!-- News items will be injected here -->
@@ -218,7 +218,7 @@
                             <label for="service" class="block text-sm font-medium text-slate-600 mb-1">เลือกบริการ</label>
                             <select id="service" name="service" required class="modern-input w-full"></select>
                         </div>
-                        <div class="md:col-span-2">
+                        <div>
                             <label for="treatment-right" class="block text-sm font-medium text-slate-600 mb-1">สิทธิการรักษา</label>
                             <select id="treatment-right" name="treatment-right" required class="modern-input w-full"></select>
                         </div>
@@ -271,7 +271,7 @@
              <div class="bg-white p-8 rounded-2xl shadow-lg max-w-lg mx-auto">
                 <h2 class="text-3xl font-bold text-center text-slate-800 mb-8">ตรวจสอบสถานะการจอง</h2>
                 <form id="status-check-form" class="space-y-4">
-                     <div>
+                    <div>
                         <label for="booking-id-input" class="block text-sm font-medium text-slate-600 mb-1">กรอกรหัสการจอง</label>
                         <input type="text" id="booking-id-input" required class="modern-input w-full text-center text-lg tracking-widest">
                     </div>
@@ -311,22 +311,22 @@
                     <nav class="flex-grow">
                         <ul class="space-y-2">
                              <li><a href="#" data-view="admin-overview" class="admin-nav-link active">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-                                <span>ภาพรวม</span></a>
+                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                                 <span>ภาพรวม</span></a>
                             </li>
                             <li><a href="#" data-view="admin-appointments" class="admin-nav-link">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
                                 <span>จัดการนัดหมาย</span></a>
                             </li>
                              <li><a href="#" data-view="admin-news" class="admin-nav-link">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3h2m-4 3h2m-4 3h2"></path></svg>
-                                <span>จัดการข่าวสาร</span></a>
+                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3h2m-4 3h2m-4 3h2"></path></svg>
+                                 <span>จัดการข่าวสาร</span></a>
                             </li>
                              <li><a href="#" data-view="admin-inbox" class="admin-nav-link">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                                <span>กล่องข้อความ</span>
-                                <span id="inbox-badge" class="ml-auto bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center hidden">0</span>
-                                </a>
+                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                 <span>กล่องข้อความ</span>
+                                 <span id="inbox-badge" class="ml-auto bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center hidden">0</span>
+                                 </a>
                             </li>
                             <li><a href="#" data-view="admin-settings" class="admin-nav-link">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.096 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
@@ -335,8 +335,8 @@
                         </ul>
                     </nav>
                      <button id="admin-logout" class="w-full mt-8 bg-red-500/90 hover:bg-red-600 text-white font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                        ออกจากระบบ
+                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                         ออกจากระบบ
                      </button>
                 </aside>
 
@@ -404,17 +404,29 @@
         const itemsPerPage = 10;
         let announcementEditor;
         let newsEditor;
-       
+        const allPossibleTimeSlots = [
+            "07:00", "07:20", "07:40", "08:00", "08:20", "08:40",
+            "09:00", "09:20", "09:40", "10:00", "10:20", "10:40",
+            "11:00", "11:20", "11:40", "13:00", "13:20", "13:40",
+            "14:00", "14:20", "14:40", "15:00", "15:20", "15:40",
+            "16:00", "16:20", "16:40", "17:00", "17:20", "17:40",
+            "18:00", "18:20", "18:40"
+        ];
+
 
         const DEFAULT_CONFIG = {
             clinicName: "คลินิกทันตกรรม",
             services: ["ตรวจสุขภาพฟัน", "ขูดหินปูน", "อุดฟัน"],
-            treatmentRights: ["สิทธิบัตรทอง", "ประกันสังคม", "ชำระเงินเอง"],
             operatingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-            operatingHours: { open: "09:00", close: "17:00" },
+            availableTimeSlots: [
+                "09:00", "09:20", "09:40", "10:00", "10:20", "10:40", "11:00", "11:20", "11:40", 
+                "13:00", "13:20", "13:40", "14:00", "14:20", "14:40", "15:00", "15:20", "15:40",
+                "16:00", "16:20", "16:40"
+            ],
             announcement: "",
             announcementBackup: "",
             blockedDates: [],
+            treatmentRights: ["สิทธิบัตรทอง", "สิทธิประกันสังคม", "ชำระเงินเอง"],
             contactName: "เจ้าหน้าที่",
             contactPhone: "02-123-4567"
         };
@@ -466,13 +478,11 @@
             }
             const serviceEl = document.getElementById('service');
             if (serviceEl) {
-                if (!clinicConfig.services) clinicConfig.services = [];
                 serviceEl.innerHTML = clinicConfig.services.map(s => `<option value="${s}">${s}</option>`).join('');
             }
-             const treatmentRightEl = document.getElementById('treatment-right');
+            const treatmentRightEl = document.getElementById('treatment-right');
             if (treatmentRightEl) {
-                if (!clinicConfig.treatmentRights) clinicConfig.treatmentRights = [];
-                treatmentRightEl.innerHTML = clinicConfig.treatmentRights.map(s => `<option value="${s}">${s}</option>`).join('');
+                treatmentRightEl.innerHTML = clinicConfig.treatmentRights.map(r => `<option value="${r}">${r}</option>`).join('');
             }
             setupDateTimePickers();
         }
@@ -556,7 +566,7 @@
             for (let i = 0; i < firstDay.getDay(); i++) { calendarGrid.innerHTML += '<div></div>'; }
             
             for (let day = 1; day <= lastDay.getDate(); day++) {
-                const date = new Date(year, month, day, 12);
+                const date = new Date(year, month, day, 12); // Use midday to avoid timezone issues
                 const today = new Date();
                 today.setHours(0,0,0,0);
 
@@ -586,26 +596,14 @@
             timeSlotsGrid.innerHTML = '';
             
             const dayBookedSlots = dateStr ? bookedSlots.filter(slotId => slotId.startsWith(dateStr)) : [];
-            const { open, close } = clinicConfig.operatingHours;
-            const [openHour, openMin] = open.split(':').map(Number);
-            const [closeHour, closeMin] = close.split(':').map(Number);
             
-            let currentHour = openHour;
-            let currentMin = openMin;
-            let hasSlot = false;
-            
-            while (currentHour < closeHour || (currentHour === closeHour && currentMin < closeMin)) {
-                const timeString = `${String(currentHour).padStart(2, '0')}:${String(currentMin).padStart(2, '0')}`;
-                
-                if (timeString === "12:00" || timeString === "12:30") {
-                    currentMin += 30;
-                    if (currentMin >= 60) {
-                        currentHour++;
-                        currentMin -= 60;
-                    }
-                    continue;
-                }
+            if (!clinicConfig.availableTimeSlots || clinicConfig.availableTimeSlots.length === 0) {
+                timeSlotsGrid.innerHTML = '<p class="col-span-full text-slate-500">ไม่มีช่วงเวลาให้บริการ</p>';
+                return;
+            }
 
+            let hasSlot = false;
+            clinicConfig.availableTimeSlots.forEach(timeString => {
                 hasSlot = true;
                 const slotId = `${dateStr}_${timeString.replace(':', '-')}`;
                 const isBooked = dayBookedSlots.includes(slotId);
@@ -617,15 +615,10 @@
                     classes += ' selected';
                 }
                 timeSlotsGrid.innerHTML += `<button type="button" class="${classes}" data-time="${timeString}" ${isBooked ? 'disabled' : ''}>${timeString}</button>`;
-                
-                currentMin += 30;
-                if (currentMin >= 60) {
-                    currentHour++;
-                    currentMin -= 60;
-                }
-            }
+            });
+
              if(!hasSlot) {
-                timeSlotsGrid.innerHTML = '<p class="col-span-full text-slate-500">ไม่มีช่วงเวลาให้บริการ</p>';
+                 timeSlotsGrid.innerHTML = '<p class="col-span-full text-slate-500">ไม่มีช่วงเวลาให้บริการ</p>';
             }
         }
 
@@ -657,7 +650,7 @@
                 paginationHtml += '</div>';
             }
 
-            container.innerHTML = `<div class="bg-white p-6 rounded-2xl shadow-lg"><div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-slate-800">รายการนัดหมายทั้งหมด</h3><button id="export-csv-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg><span>Export Report (CSV)</span></button></div><div class="overflow-x-auto"><table class="min-w-full"><thead class="border-b border-slate-200"><tr><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">รหัสการจอง</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">วันและเวลา</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">ชื่อคนไข้</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">บริการ</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">สิทธิการรักษา</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">สถานะ</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">จัดการ</th></tr></thead><tbody class="divide-y divide-slate-100">${paginatedAppointments.map(appt => { const statusInfo = getStatusInfo(appt.status); const noteIcon = `<svg data-id="${appt.id}" data-note="${appt.note || ''}" class="note-icon cursor-pointer inline-block w-5 h-5 ${appt.note ? 'text-blue-500' : 'text-gray-400'}" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 12V7a2 2 0 012-2h2.586l-4 4H5zM3 15a2 2 0 012-2h9.586l-2.293 2.293A1 1 0 0112 16H5a2 2 0 01-2-2z"></path></svg>`; return `<tr><td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-500">${appt.bookingId}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">${new Date(appt.date).toLocaleDateString('th-TH')} ${appt.time}</td><td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${appt.patientName} ${noteIcon}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">${appt.service}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">${appt.treatmentRight || ''}</td><td class="px-6 py-4 whitespace-nowrap"><span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${statusInfo.bg} ${statusInfo.text}">${translateStatus(appt.status)}</span></td><td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2"><button data-id="${appt.id}" data-status="confirmed" class="update-status-btn text-green-600 hover:text-green-900 ${appt.status !== 'pending' ? 'hidden' : ''}">ยืนยัน</button><button data-id="${appt.id}" data-status="completed" class="update-status-btn text-blue-600 hover:text-blue-900 ${appt.status !== 'confirmed' ? 'hidden' : ''}">เสร็จสิ้น</button><button data-id="${appt.id}" data-status="cancelled" class="update-status-btn text-red-600 hover:text-red-900 ${['completed', 'cancelled'].includes(appt.status) ? 'hidden' : ''}">ยกเลิก</button></td></tr>`; }).join('')}</tbody></table></div>${paginationHtml}</div>`;
+            container.innerHTML = `<div class="bg-white p-6 rounded-2xl shadow-lg"><div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-slate-800">รายการนัดหมายทั้งหมด</h3><button id="export-csv-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg><span>Export Report (CSV)</span></button></div><div class="overflow-x-auto"><table class="min-w-full"><thead class="border-b border-slate-200"><tr><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">รหัสการจอง</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">วันและเวลา</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">ชื่อคนไข้</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">บริการ</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">สิทธิการรักษา</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">สถานะ</th><th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">จัดการ</th></tr></thead><tbody class="divide-y divide-slate-100">${paginatedAppointments.map(appt => { const statusInfo = getStatusInfo(appt.status); const noteIcon = `<svg data-id="${appt.id}" data-note="${appt.note || ''}" class="note-icon cursor-pointer inline-block w-5 h-5 ${appt.note ? 'text-blue-500' : 'text-gray-400'}" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828zM5 12V7a2 2 0 012-2h2.586l-4 4H5zM3 15a2 2 0 012-2h9.586l-2.293 2.293A1 1 0 0112 16H5a2 2 0 01-2-2z"></path></svg>`; return `<tr><td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-500">${appt.bookingId}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">${new Date(appt.date).toLocaleDateString('th-TH')} ${appt.time}</td><td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${appt.patientName} ${noteIcon}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">${appt.service}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">${appt.treatmentRight || '-'}</td><td class="px-6 py-4 whitespace-nowrap"><span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${statusInfo.bg} ${statusInfo.text}">${translateStatus(appt.status)}</span></td><td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2"><button data-id="${appt.id}" data-status="confirmed" class="update-status-btn text-green-600 hover:text-green-900 ${appt.status !== 'pending' ? 'hidden' : ''}">ยืนยัน</button><button data-id="${appt.id}" data-status="completed" class="update-status-btn text-blue-600 hover:text-blue-900 ${appt.status !== 'confirmed' ? 'hidden' : ''}">เสร็จสิ้น</button><button data-id="${appt.id}" data-status="cancelled" class="update-status-btn text-red-600 hover:text-red-900 ${['completed', 'cancelled'].includes(appt.status) ? 'hidden' : ''}">ยกเลิก</button></td></tr>`; }).join('')}</tbody></table></div>${paginationHtml}</div>`;
         }
         function renderInbox(page = 1) {
             const container = document.getElementById('admin-inbox-view');
@@ -734,15 +727,15 @@
                 <div class="bg-white p-6 rounded-2xl shadow-lg">
                      <h3 class="text-2xl font-bold mb-4 text-slate-800">รายการข่าวทั้งหมด</h3>
                      <div id="admin-news-list" class="space-y-3">
-                        ${allNews.length === 0 ? '<p class="text-slate-500">ยังไม่มีข่าวที่สร้าง</p>' : allNews.map(news => `
-                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                                <div>
-                                    <p class="font-semibold text-slate-800">${news.title}</p>
-                                    <p class="text-xs text-slate-500">${news.createdAt ? news.createdAt.toDate().toLocaleDateString('th-TH') : ''}</p>
-                                </div>
-                                <button data-id="${news.id}" class="delete-news-btn text-red-500 hover:text-red-700 font-semibold">ลบ</button>
-                            </div>
-                        `).join('')}
+                         ${allNews.length === 0 ? '<p class="text-slate-500">ยังไม่มีข่าวที่สร้าง</p>' : allNews.map(news => `
+                             <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                 <div>
+                                     <p class="font-semibold text-slate-800">${news.title}</p>
+                                     <p class="text-xs text-slate-500">${news.createdAt ? news.createdAt.toDate().toLocaleDateString('th-TH') : ''}</p>
+                                 </div>
+                                 <button data-id="${news.id}" class="delete-news-btn text-red-500 hover:text-red-700 font-semibold">ลบ</button>
+                             </div>
+                         `).join('')}
                      </div>
                 </div>
             `;
@@ -833,7 +826,7 @@
              <div class="bg-white p-6 rounded-2xl shadow-lg">
                  <h3 class="text-2xl font-bold mb-6 text-slate-800">ตั้งค่าคลินิก</h3>
                  <div class="space-y-10">
-                    <form id="settings-form" class="space-y-10">
+                     <form id="settings-form" class="space-y-10">
                          <div class="space-y-4">
                              <h4 class="font-semibold text-lg text-slate-700 border-b pb-2">ข้อมูลการติดต่อ</h4>
                              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -862,9 +855,9 @@
                                  <input type="text" id="clinic-name-input" class="modern-input w-full">
                              </div>
                              <div>
-                                <label for="announcement-backup-input" class="block text-sm font-medium text-slate-600 mb-1">ข่าวประชาสัมพันธ์ (สำรอง)</label>
-                                <div id="announcement-editor-container"></div>
-                            </div>
+                                 <label for="announcement-backup-input" class="block text-sm font-medium text-slate-600 mb-1">ข่าวประชาสัมพันธ์ (สำรอง)</label>
+                                 <div id="announcement-editor-container"></div>
+                             </div>
                          </div>
                          <div class="space-y-4">
                              <h4 class="font-semibold text-lg text-slate-700 border-b pb-2">วันและเวลาทำการ</h4>
@@ -872,14 +865,10 @@
                                  <label class="block text-sm font-medium text-slate-600 mb-2">วันที่เปิดให้บริการ</label>
                                  <div id="operating-days-inputs" class="mt-2 grid grid-cols-2 md:grid-cols-4 gap-4"></div>
                              </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                 <div>
-                                     <label for="open-time-input" class="block text-sm font-medium text-slate-600 mb-1">เวลาเปิด</label>
-                                     <input type="time" id="open-time-input" class="modern-input w-full">
-                                 </div>
-                                 <div>
-                                     <label for="close-time-input" class="block text-sm font-medium text-slate-600 mb-1">เวลาปิด</label>
-                                     <input type="time" id="close-time-input" class="modern-input w-full">
+                             <div>
+                                 <label class="block text-sm font-medium text-slate-600 mb-2">เลือกช่วงเวลาที่เปิดให้บริการ (ช่วงละ 20 นาที)</label>
+                                 <div id="time-slots-settings-grid" class="mt-2 grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                                     <!-- Time slots will be injected here -->
                                  </div>
                              </div>
                          </div>
@@ -887,35 +876,35 @@
                               <h4 class="font-semibold text-lg text-slate-700 border-b pb-2">จัดการบริการ</h4>
                               <div id="services-list" class="space-y-2"></div>
                               <div class="flex gap-3">
-                                   <input type="text" id="new-service-input" placeholder="เพิ่มบริการใหม่" class="modern-input flex-grow">
-                                   <button type="button" id="add-service-btn" class="bg-indigo-600 text-white px-4 py-2.5 rounded-lg font-semibold">เพิ่ม</button>
+                                  <input type="text" id="new-service-input" placeholder="เพิ่มบริการใหม่" class="modern-input flex-grow">
+                                  <button type="button" id="add-service-btn" class="bg-indigo-600 text-white px-4 py-2.5 rounded-lg font-semibold">เพิ่ม</button>
                               </div>
                          </div>
                          <div class="space-y-4">
-                              <h4 class="font-semibold text-lg text-slate-700 border-b pb-2">จัดการสิทธิการรักษา</h4>
-                              <div id="treatment-rights-list" class="space-y-2"></div>
-                              <div class="flex gap-3">
-                                   <input type="text" id="new-treatment-right-input" placeholder="เพิ่มสิทธิการรักษาใหม่" class="modern-input flex-grow">
-                                   <button type="button" id="add-treatment-right-btn" class="bg-indigo-600 text-white px-4 py-2.5 rounded-lg font-semibold">เพิ่ม</button>
-                              </div>
-                         </div>
+                            <h4 class="font-semibold text-lg text-slate-700 border-b pb-2">จัดการสิทธิการรักษา</h4>
+                            <div id="treatment-rights-list" class="space-y-2"></div>
+                            <div class="flex gap-3">
+                                <input type="text" id="new-treatment-right-input" placeholder="เพิ่มสิทธิการรักษาใหม่" class="modern-input flex-grow">
+                                <button type="button" id="add-treatment-right-btn" class="bg-indigo-600 text-white px-4 py-2.5 rounded-lg font-semibold">เพิ่ม</button>
+                            </div>
+                        </div>
                          <button type="submit" class="w-full text-lg bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-xl shadow-md hover:shadow-lg transition">บันทึกการตั้งค่า</button>
-                    </form>
-                    <div class="space-y-4">
+                     </form>
+                     <div class="space-y-4">
                          <h4 class="font-semibold text-lg text-slate-700 border-b pb-2">จัดการเจ้าหน้าที่</h4>
                          <div id="staff-list" class="space-y-3"></div>
                          <div class="p-4 border border-slate-200 rounded-xl mt-4 space-y-3">
-                            <h5 class="font-semibold text-md text-slate-600">เพิ่มเจ้าหน้าที่ใหม่</h5>
-                            <form id="add-staff-form" class="space-y-3">
-                                <input type="text" id="new-staff-name" placeholder="ชื่อ-นามสกุล" required class="modern-input w-full">
-                                <input type="email" id="new-staff-email" placeholder="อีเมล" required class="modern-input w-full">
-                                <input type="password" id="new-staff-password" placeholder="รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)" required class="modern-input w-full">
-                                <button type="submit" class="w-full bg-green-500 text-white py-2.5 rounded-lg font-semibold">เพิ่มเจ้าหน้าที่</button>
-                                <p id="add-staff-error" class="text-red-500 text-sm text-center"></p>
-                            </form>
+                             <h5 class="font-semibold text-md text-slate-600">เพิ่มเจ้าหน้าที่ใหม่</h5>
+                             <form id="add-staff-form" class="space-y-3">
+                                 <input type="text" id="new-staff-name" placeholder="ชื่อ-นามสกุล" required class="modern-input w-full">
+                                 <input type="email" id="new-staff-email" placeholder="อีเมล" required class="modern-input w-full">
+                                 <input type="password" id="new-staff-password" placeholder="รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)" required class="modern-input w-full">
+                                 <button type="submit" class="w-full bg-green-500 text-white py-2.5 rounded-lg font-semibold">เพิ่มเจ้าหน้าที่</button>
+                                 <p id="add-staff-error" class="text-red-500 text-sm text-center"></p>
+                             </form>
                          </div>
-                    </div>
-                </div>
+                     </div>
+                 </div>
              </div>`;
             container.innerHTML = formHtml;
             document.getElementById('clinic-name-input').value = clinicConfig.clinicName;
@@ -933,8 +922,6 @@
                 announcementEditor.root.innerHTML = clinicConfig.announcementBackup;
             }
 
-            document.getElementById('open-time-input').value = clinicConfig.operatingHours.open;
-            document.getElementById('close-time-input').value = clinicConfig.operatingHours.close;
             document.getElementById('contact-name-input').value = clinicConfig.contactName;
             document.getElementById('contact-phone-input').value = clinicConfig.contactPhone;
             const daysContainer = document.getElementById('operating-days-inputs');
@@ -942,8 +929,9 @@
             daysContainer.innerHTML = Object.entries(days).map(([eng, th]) => `<label class="flex items-center space-x-2"><input type="checkbox" value="${eng}" class="operating-day-cb rounded h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-slate-300" ${clinicConfig.operatingDays.includes(eng) ? 'checked' : ''}><span class="text-slate-700">${th}</span></label>`).join('');
             renderBlockedDatesList();
             renderServicesList();
-            renderStaffList();
             renderTreatmentRightsList();
+            renderStaffList();
+            renderTimeSlotSettings();
         }
 
         function renderBlockedDatesList() {
@@ -958,11 +946,10 @@
         }
         function renderTreatmentRightsList() {
             const listContainer = document.getElementById('treatment-rights-list');
-            if (!listContainer) return;
-            if (!clinicConfig.treatmentRights) clinicConfig.treatmentRights = [];
+            if(!listContainer) return;
+            if(!clinicConfig.treatmentRights) clinicConfig.treatmentRights = [];
             listContainer.innerHTML = clinicConfig.treatmentRights.map((right, index) => `<div class="flex items-center justify-between p-2 bg-slate-100 rounded-lg"><input type="text" value="${right}" data-index="${index}" class="treatment-right-item-input bg-transparent border-0 focus:ring-0 w-full font-medium"><button type="button" data-index="${index}" class="delete-treatment-right-btn text-red-500 hover:text-red-700 font-bold">ลบ</button></div>`).join('');
         }
-
         function renderStaffList() {
             const container = document.getElementById('staff-list');
             if(!container || !allStaff) return;
@@ -985,6 +972,19 @@
                     </div>
                 </div>
             `).join('');
+        }
+        function renderTimeSlotSettings() {
+            const container = document.getElementById('time-slots-settings-grid');
+            if (!container) return;
+
+            if (!clinicConfig.availableTimeSlots) {
+                clinicConfig.availableTimeSlots = [];
+            }
+
+            container.innerHTML = allPossibleTimeSlots.map(time => {
+                const isActive = clinicConfig.availableTimeSlots.includes(time);
+                return `<button type="button" data-time="${time}" class="time-slot-setting p-2 rounded-lg ${isActive ? 'active' : ''}">${time}</button>`;
+            }).join('');
         }
 
         function setupEventListeners() {
@@ -1046,6 +1046,22 @@
                         }
                     );
                 }
+                const timeSlotSettingBtn = e.target.closest('.time-slot-setting');
+                if (timeSlotSettingBtn) {
+                    const time = timeSlotSettingBtn.dataset.time;
+                    if (!clinicConfig.availableTimeSlots) {
+                        clinicConfig.availableTimeSlots = [];
+                    }
+                    const index = clinicConfig.availableTimeSlots.indexOf(time);
+                    if (index > -1) {
+                        clinicConfig.availableTimeSlots.splice(index, 1);
+                        timeSlotSettingBtn.classList.remove('active');
+                    } else {
+                        clinicConfig.availableTimeSlots.push(time);
+                        clinicConfig.availableTimeSlots.sort();
+                        timeSlotSettingBtn.classList.add('active');
+                    }
+                }
             });
 
             document.body.addEventListener('submit', (e) => {
@@ -1083,26 +1099,26 @@
                         const apptId = e.target.dataset.id;
                         const slotId = e.target.dataset.slotId;
                          showConfirmationModal(
-                            'ยืนยันการยกเลิก',
-                            'คุณแน่ใจหรือไม่ว่าต้องการยกเลิกนัดหมายนี้?',
-                             async () => {
-                                showLoading(true);
+                             'ยืนยันการยกเลิก',
+                             'คุณแน่ใจหรือไม่ว่าต้องการยกเลิกนัดหมายนี้?',
+                              async () => {
+                                 showLoading(true);
                                  try {
-                                    await runTransaction(db, async (transaction) => {
-                                        const apptRef = doc(db, "appointments", apptId);
-                                        const slotRef = doc(db, "booked_slots", slotId);
-                                        transaction.update(apptRef, { status: 'cancelled' });
-                                        transaction.delete(slotRef);
-                                    });
-                                    statusResultEl.innerHTML = '<p class="text-green-600 text-center font-semibold">ยกเลิกนัดหมายสำเร็จแล้ว</p>';
-                                } catch (error) {
-                                    console.error("Cancellation error:", error);
-                                    statusResultEl.innerHTML = '<p class="text-red-500 text-center font-semibold">เกิดข้อผิดพลาดในการยกเลิก</p>';
-                                } finally {
-                                    showLoading(false);
-                                }
-                            }
-                        );
+                                     await runTransaction(db, async (transaction) => {
+                                         const apptRef = doc(db, "appointments", apptId);
+                                         const slotRef = doc(db, "booked_slots", slotId);
+                                         transaction.update(apptRef, { status: 'cancelled' });
+                                         transaction.delete(slotRef);
+                                     });
+                                     statusResultEl.innerHTML = '<p class="text-green-600 text-center font-semibold">ยกเลิกนัดหมายสำเร็จแล้ว</p>';
+                                 } catch (error) {
+                                     console.error("Cancellation error:", error);
+                                     statusResultEl.innerHTML = '<p class="text-red-500 text-center font-semibold">เกิดข้อผิดพลาดในการยกเลิก</p>';
+                                 } finally {
+                                     showLoading(false);
+                                 }
+                             }
+                         );
                     }
                 });
             }
@@ -1150,7 +1166,7 @@
                         renderServicesList();
                     }
                 }
-                 if (deleteServiceBtn) {
+                if (deleteServiceBtn) {
                     const index = deleteServiceBtn.dataset.index;
                     clinicConfig.services.splice(index, 1);
                     renderServicesList();
@@ -1158,7 +1174,7 @@
                 if (addTreatmentRightBtn) {
                     const input = document.getElementById('new-treatment-right-input');
                     if (input && input.value.trim()) {
-                        if (!clinicConfig.treatmentRights) clinicConfig.treatmentRights = [];
+                        if(!clinicConfig.treatmentRights) clinicConfig.treatmentRights = [];
                         clinicConfig.treatmentRights.push(input.value.trim());
                         input.value = '';
                         renderTreatmentRightsList();
@@ -1196,7 +1212,7 @@
                 if(deleteNewsBtn) {
                     const newsId = deleteNewsBtn.dataset.id;
                      showConfirmationModal('ยืนยันการลบ', 'คุณแน่ใจหรือไม่ว่าต้องการลบข่าวนี้?', () => {
-                        deleteDoc(doc(db, "news", newsId));
+                         deleteDoc(doc(db, "news", newsId));
                     });
                 }
 
@@ -1216,7 +1232,7 @@
                     const index = e.target.dataset.index;
                     clinicConfig.services[index] = e.target.value.trim();
                 }
-                 if(e.target.classList.contains('treatment-right-item-input')) {
+                if(e.target.classList.contains('treatment-right-item-input')) {
                     const index = e.target.dataset.index;
                     clinicConfig.treatmentRights[index] = e.target.value.trim();
                 }
@@ -1264,8 +1280,6 @@
             const patientName = sanitizeHTML(document.getElementById('patient-name').value);
             const patientContact = sanitizeHTML(document.getElementById('patient-contact').value);
             const patientAge = sanitizeHTML(document.getElementById('patient-age').value);
-            const treatmentRight = document.getElementById('treatment-right').value;
-
             const phoneRegex = /^[0-9]{10}$/;
             if (!phoneRegex.test(patientContact)) {
                 msgEl.textContent = 'กรุณากรอกเบอร์โทรศัพท์ 10 หลักให้ถูกต้อง';
@@ -1298,7 +1312,7 @@
                         patientContact, 
                         patientAge,
                         service: document.getElementById('service').value, 
-                        treatmentRight: treatmentRight,
+                        treatmentRight: document.getElementById('treatment-right').value,
                         date: selectedDateForBooking, 
                         time: selectedTimeForBooking, 
                         status: 'pending', 
@@ -1320,7 +1334,7 @@
                         <p><strong>อายุ:</strong> ${patientAge} ปี</p>
                         <p><strong>เบอร์โทร:</strong> ${patientContact}</p>
                         <p><strong>ประเภทการรักษา:</strong> ${document.getElementById('service').value}</p>
-                        <p><strong>สิทธิการรักษา:</strong> ${treatmentRight}</p>
+                        <p><strong>สิทธิการรักษา:</strong> ${document.getElementById('treatment-right').value}</p>
                         <hr class="my-2 border-slate-200">
                         <p class="text-sm text-center text-slate-600 mt-4">กรุณามาตามวันและเวลาที่จอง<br>หากมีข้อสงสัย โทร. ${clinicConfig.contactPhone}</p>
                     `;
@@ -1340,7 +1354,7 @@
                 showLoading(false);
             }
         }
-        async function handleStatusCheck(e) { e.preventDefault(); showLoading(true); const id = sanitizeHTML(document.getElementById('booking-id-input').value.trim()); const resultDiv = document.getElementById('status-result'); resultDiv.innerHTML = ''; if (!id) { resultDiv.innerHTML = `<p class="text-red-500 text-center font-semibold">กรุณากรอกรหัสการจอง</p>`; showLoading(false); return; } try { const q = query(collection(db, "appointments"), where("bookingId", "==", id)); const snap = await getDocs(q); if (!snap.empty) { const docSnap = snap.docs[0]; const appt = docSnap.data(); const statusInfo = getStatusInfo(appt.status); const slotId = `${appt.date}_${appt.time.replace(':', '-')}`; const cancelBtn = (appt.status === 'pending' || appt.status === 'confirmed') ? `<button id="patient-cancel-btn" data-id="${docSnap.id}" data-slot-id="${slotId}" class="w-full mt-4 bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-lg transition font-semibold">ยกเลิกนัดหมาย</button>` : ''; resultDiv.innerHTML = `<div class="border rounded-xl p-4 ${statusInfo.bg} bg-opacity-20"><h4 class="font-bold text-lg text-slate-800">รายละเอียดการจอง</h4><p><strong>บริการ:</strong> ${sanitizeHTML(appt.service)}</p><p><strong>สิทธิการรักษา:</strong> ${sanitizeHTML(appt.treatmentRight || 'ไม่ได้ระบุ')}</p><p><strong>วันที่:</strong> ${new Date(appt.date + 'T00:00:00').toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric'})} เวลา ${appt.time} น.</p><div class="mt-2"><strong>สถานะ:</strong> <span class="text-sm font-medium px-2 py-1 rounded-full ${statusInfo.bg} ${statusInfo.text}">${translateStatus(appt.status)}</span></div></div>${cancelBtn}`; } else { resultDiv.innerHTML = `<p class="text-red-500 text-center font-semibold">ไม่พบข้อมูลการจองสำหรับรหัสนี้</p>`; } } catch (error) { resultDiv.innerHTML = `<p class="text-red-500 text-center font-semibold">เกิดข้อผิดพลาด</p>`; } finally { showLoading(false); } }
+        async function handleStatusCheck(e) { e.preventDefault(); showLoading(true); const id = sanitizeHTML(document.getElementById('booking-id-input').value.trim()); const resultDiv = document.getElementById('status-result'); resultDiv.innerHTML = ''; if (!id) { resultDiv.innerHTML = `<p class="text-red-500 text-center font-semibold">กรุณากรอกรหัสการจอง</p>`; showLoading(false); return; } try { const q = query(collection(db, "appointments"), where("bookingId", "==", id)); const snap = await getDocs(q); if (!snap.empty) { const docSnap = snap.docs[0]; const appt = docSnap.data(); const statusInfo = getStatusInfo(appt.status); const slotId = `${appt.date}_${appt.time.replace(':', '-')}`; const cancelBtn = (appt.status === 'pending' || appt.status === 'confirmed') ? `<button id="patient-cancel-btn" data-id="${docSnap.id}" data-slot-id="${slotId}" class="w-full mt-4 bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-lg transition font-semibold">ยกเลิกนัดหมาย</button>` : ''; resultDiv.innerHTML = `<div class="border rounded-xl p-4 ${statusInfo.bg} bg-opacity-20"><h4 class="font-bold text-lg text-slate-800">รายละเอียดการจอง</h4><p><strong>บริการ:</strong> ${sanitizeHTML(appt.service)}</p><p><strong>สิทธิการรักษา:</strong> ${sanitizeHTML(appt.treatmentRight || '-')}</p><p><strong>วันที่:</strong> ${new Date(appt.date + 'T00:00:00').toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric'})} เวลา ${appt.time} น.</p><div class="mt-2"><strong>สถานะ:</strong> <span class="text-sm font-medium px-2 py-1 rounded-full ${statusInfo.bg} ${statusInfo.text}">${translateStatus(appt.status)}</span></div></div>${cancelBtn}`; } else { resultDiv.innerHTML = `<p class="text-red-500 text-center font-semibold">ไม่พบข้อมูลการจองสำหรับรหัสนี้</p>`; } } catch (error) { resultDiv.innerHTML = `<p class="text-red-500 text-center font-semibold">เกิดข้อผิดพลาด</p>`; } finally { showLoading(false); } }
         async function handleSettingsSubmit(e) { 
             e.preventDefault(); 
             showLoading(true); 
@@ -1348,16 +1362,13 @@
                 ...clinicConfig, 
                 clinicName: sanitizeHTML(document.getElementById('clinic-name-input').value), 
                 announcementBackup: announcementEditor.root.innerHTML,
-                operatingHours: { open: document.getElementById('open-time-input').value, close: document.getElementById('close-time-input').value }, 
+                availableTimeSlots: clinicConfig.availableTimeSlots,
                 operatingDays: Array.from(document.querySelectorAll('.operating-day-cb:checked')).map(cb => cb.value), 
                 contactName: sanitizeHTML(document.getElementById('contact-name-input').value), 
-                contactPhone: sanitizeHTML(document.getElementById('contact-phone-input').value),
-                services: clinicConfig.services,
-                treatmentRights: clinicConfig.treatmentRights,
-                blockedDates: clinicConfig.blockedDates,
+                contactPhone: sanitizeHTML(document.getElementById('contact-phone-input').value) 
             }; 
             try { 
-                await setDoc(doc(db, "clinic_settings", "config"), newConfig); 
+                await setDoc(doc(db, "clinic_settings", "config"), newConfig, { merge: true }); 
                 clinicConfig = newConfig; 
                 updatePublicUI(); 
                 populateSettingsForm(); 
