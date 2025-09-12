@@ -11,7 +11,7 @@
     <style>
         body {
             font-family: 'Sarabun', sans-serif;
-            background-color: #f8fafc; /* slate-50 */
+            background-color: #fef2f2; /* red-50 */
         }
         .view { display: none; }
         .view.active { display: block; }
@@ -256,7 +256,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <h2 class="mt-6 text-3xl font-bold text-slate-800">จองคิวสำเร็จ!</h2>
-                <div class="mt-4 p-4 bg-red-100 border-l-4 red-amber-500 text-red-800 rounded-lg" role="alert">
+                <div class="mt-4 p-4 bg-red-100 border-l-4 border-red-500 text-red-800 rounded-lg" role="alert">
                     <div class="flex">
                         <div class="py-1">
                             <svg class="w-6 h-6 mr-4" fill="currentColor" viewBox="0 0 20 20">
@@ -384,14 +384,14 @@
 
         // --- Firebase Config ---
         const firebaseConfig = {
-            apiKey: "AIzaSyAtOUoFJg_qcGdtMVgHLDAjK1gkk7rKQ7Q",
-            authDomain: "demotest-ab5b5.firebaseapp.com",
-            projectId: "demotest-ab5b5",
-            storageBucket: "demotest-ab5b5.appspot.com",
-            messagingSenderId: "280787825559",
-            appId: "1:280787825559:web:10f97a5c92578a6b8a4ad2",
-            measurementId: "G-T1K3TMVXCV"
-        };
+  apiKey: "AIzaSyAtOUoFJg_qcGdtMVgHLDAjK1gkk7rKQ7Q",
+  authDomain: "demotest-ab5b5.firebaseapp.com",
+  projectId: "demotest-ab5b5",
+  storageBucket: "demotest-ab5b5.firebasestorage.app",
+  messagingSenderId: "280787825559",
+  appId: "1:280787825559:web:10f97a5c92578a6b8a4ad2",
+  measurementId: "G-T1K3TMVXCV"
+};
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -451,12 +451,56 @@
         const views = document.querySelectorAll('.view');
         const loadingOverlay = document.getElementById('loading-overlay');
         
+        // --- Helper Functions ---
+        const showLoading = (isLoading) => loadingOverlay.classList.toggle('hidden', !isLoading);
+        const getStatusInfo = (status) => {
+            const statuses = {
+                pending: { bg: 'bg-amber-100', text: 'text-amber-800' },
+                confirmed: { bg: 'bg-green-100', text: 'text-green-800' },
+                completed: { bg: 'bg-sky-100', text: 'text-sky-800' },
+                cancelled: { bg: 'bg-red-100', text: 'text-red-800' }
+            };
+            return statuses[status] || { bg: 'bg-slate-100', text: 'text-slate-800' };
+        };
+        const translateStatus = (status) => {
+            const translations = {
+                pending: 'รอการยืนยัน',
+                confirmed: 'ยืนยันแล้ว',
+                completed: 'เสร็จสิ้น',
+                cancelled: 'ยกเลิก'
+            };
+            return translations[status] || status;
+        };
+        const sanitizeHTML = (str) => {
+            const temp = document.createElement('div');
+            temp.textContent = str;
+            return temp.innerHTML;
+        };
+        
+        function showToast(message, isError = false) {
+            const toast = document.createElement('div');
+            toast.className = `fixed top-5 right-5 p-4 rounded-lg shadow-lg text-white font-semibold transition-all duration-300 z-[100] transform translate-x-full`;
+            toast.classList.toggle('bg-red-500', isError);
+            toast.classList.toggle('bg-green-500', !isError);
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-x-full');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', async () => {
             document.querySelectorAll('.welcome-btn').forEach(el => el.className = cssClasses.welcomeBtn + ' ' + el.className);
-            await loadClinicConfig();
             setupEventListeners();
             history.replaceState({ view: 'welcome-view' }, '', '#welcome-view');
+            await loadClinicConfig();
         });
         
         async function loadClinicConfig() {
@@ -467,18 +511,23 @@
                 if (configSnap.exists()) {
                     clinicConfig = { ...DEFAULT_CONFIG, ...configSnap.data() };
                 } else {
-                    await setDoc(configRef, DEFAULT_CONFIG);
+                    // This will only succeed if an admin is logged in, due to security rules
+                    await setDoc(configRef, DEFAULT_CONFIG).catch(() => {});
                     clinicConfig = DEFAULT_CONFIG;
                 }
-                updatePublicUI();
-                listenToBookedSlots();
             } catch (error) {
                 console.error("Failed to load clinic configuration:", error);
+                clinicConfig = DEFAULT_CONFIG; // Fallback to default config
+                showToast("ไม่สามารถโหลดการตั้งค่าได้ ใช้ค่าเริ่มต้นแทน", true);
             } finally {
+                updatePublicUI();
+                listenToBookedSlots();
                 showLoading(false);
             }
         }
+
         function updatePublicUI() {
+            if (!clinicConfig) return;
             document.querySelectorAll('.clinic-name').forEach(el => el.textContent = clinicConfig.clinicName);
             const announcementSection = document.getElementById('announcement-section');
             const announcementText = document.getElementById('announcement-text');
@@ -819,8 +868,7 @@
                         <button id="confirm-cancel-btn" class="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg transition">ยกเลิก</button>
                         <button id="confirm-ok-btn" class="px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition">ยืนยัน</button>
                     </div>
-                </div>
-            `;
+                </div>`;
             modal.classList.remove('hidden');
             document.getElementById('confirm-ok-btn').onclick = () => {
                 onConfirm();
@@ -1109,23 +1157,21 @@
                 statusResultEl.addEventListener('click', async (e) => {
                     if (e.target.id === 'patient-cancel-btn') {
                         const apptId = e.target.dataset.id;
-                        const slotId = e.target.dataset.slotId;
                          showConfirmationModal(
                              'ยืนยันการยกเลิก',
                              'คุณแน่ใจหรือไม่ว่าต้องการยกเลิกนัดหมายนี้?',
                               async () => {
                                  showLoading(true);
                                  try {
-                                     await runTransaction(db, async (transaction) => {
-                                         const apptRef = doc(db, "appointments", apptId);
-                                         const slotRef = doc(db, "booked_slots", slotId);
-                                         transaction.update(apptRef, { status: 'cancelled' });
-                                         transaction.delete(slotRef);
-                                     });
-                                     statusResultEl.innerHTML = '<p class="text-green-600 text-center font-semibold">ยกเลิกนัดหมายสำเร็จแล้ว</p>';
+                                     const apptRef = doc(db, "appointments", apptId);
+                                     await updateDoc(apptRef, { status: 'cancelled' });
+
+                                     statusResultEl.innerHTML = '<p class="text-green-600 text-center font-semibold">ส่งคำขอยกเลิกนัดหมายสำเร็จแล้ว</p>';
+                                     showToast("ส่งคำขอยกเลิกนัดหมายสำเร็จ");
                                  } catch (error) {
                                      console.error("Cancellation error:", error);
                                      statusResultEl.innerHTML = '<p class="text-red-500 text-center font-semibold">เกิดข้อผิดพลาดในการยกเลิก</p>';
+                                     showToast("เกิดข้อผิดพลาดในการยกเลิก", true);
                                  } finally {
                                      showLoading(false);
                                  }
@@ -1265,6 +1311,12 @@
             }
             showLoading(true);
             try {
+                // This part is problematic in the current environment. 
+                // A backend function is required to create users.
+                // This form is left for UI purposes but won't work without a backend.
+                errEl.textContent = "การสร้างผู้ใช้โดยตรงจาก Client ถูกปิดการใช้งาน";
+
+                /*
                 const tempApp = initializeApp(firebaseConfig, 'temp-app-for-registration');
                 const tempAuth = getAuth(tempApp);
                 const userCredential = await createUserWithEmailAndPassword(tempAuth, email, password);
@@ -1278,6 +1330,7 @@
                 
                 await signOut(tempAuth);
                 e.target.reset();
+                */
             } catch (error) {
                 console.error("Error adding new staff: ", error);
                 errEl.textContent = "เกิดข้อผิดพลาด: " + error.message;
@@ -1384,10 +1437,10 @@
                 clinicConfig = newConfig; 
                 updatePublicUI(); 
                 populateSettingsForm(); 
-                alert('บันทึกการตั้งค่าสำเร็จ!'); 
+                showToast('บันทึกการตั้งค่าสำเร็จ!'); 
             } catch (error) { 
                 console.error("Error saving settings:", error);
-                alert('เกิดข้อผิดพลาดในการบันทึก'); 
+                showToast('เกิดข้อผิดพลาดในการบันทึก', true); 
             } finally { 
                 showLoading(false); 
             } 
@@ -1398,7 +1451,7 @@
             const title = document.getElementById('news-title').value;
             const content = newsEditor.root.innerHTML;
             if (!title.trim() || content.trim() === '<p><br></p>') {
-                alert('กรุณากรอกหัวข้อและเนื้อหา');
+                showToast('กรุณากรอกหัวข้อและเนื้อหา', true);
                 return;
             }
             showLoading(true);
@@ -1410,9 +1463,10 @@
                 });
                 e.target.reset();
                 newsEditor.root.innerHTML = '';
+                showToast("เผยแพร่ข่าวสำเร็จแล้ว");
             } catch (error) {
                 console.error("Error adding news:", error);
-                alert("เกิดข้อผิดพลาดในการเผยแพร่ข่าว");
+                showToast("เกิดข้อผิดพลาดในการเผยแพร่ข่าว", true);
             } finally {
                 showLoading(false);
             }
@@ -1462,6 +1516,10 @@
             if (unsubscribeNews) unsubscribeNews();
             
             showLoading(true);
+            
+            // Always load config, it has a fallback now.
+            await loadClinicConfig();
+
             if(user) {
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if(userDoc.exists() && userDoc.data().role === 'staff') {
@@ -1473,7 +1531,9 @@
                     populateSettingsForm();
                     showView('admin-dashboard-view');
                 } else {
-                    await signOut(auth);
+                    if (auth.currentUser) {
+                       await signOut(auth);
+                    }
                 }
             } else {
                 resetAllForms();
@@ -1481,14 +1541,6 @@
             }
             showLoading(false);
         });
-        const showLoading = (isLoading) => loadingOverlay.classList.toggle('hidden', !isLoading);
-        function getStatusInfo(status) { switch (status) { case 'pending': return { bg: 'bg-amber-100', text: 'text-amber-800' }; case 'confirmed': return { bg: 'bg-green-100', text: 'text-green-800' }; case 'completed': return { bg: 'bg-sky-100', text: 'text-sky-800' }; case 'cancelled': return { bg: 'bg-red-100', text: 'text-red-800' }; default: return { bg: 'bg-slate-100', text: 'text-slate-800' }; } }
-        function translateStatus(status) { switch (status) { case 'pending': return 'รอการยืนยัน'; case 'confirmed': return 'ยืนยันแล้ว'; case 'completed': return 'เสร็จสิ้น'; case 'cancelled': return 'ยกเลิก'; default: return status; } }
-        function sanitizeHTML(str) {
-            const temp = document.createElement('div');
-            temp.textContent = str;
-            return temp.innerHTML;
-        }
         function exportToCsv() {
             const headers = ["Booking ID", "Patient Name", "Contact", "Service", "Treatment Right", "Date", "Time", "Status", "Note"];
             const rows = allAppointments.map(appt => [
@@ -1519,5 +1571,3 @@
     </script>
 </body>
 </html>
-
-
