@@ -564,7 +564,11 @@
             const q = query(collection(db, "booked_slots"));
             unsubscribeBookedSlots = onSnapshot(q, (querySnapshot) => {
                 bookedSlots = [];
-                querySnapshot.forEach(doc => bookedSlots.push(doc.id));
+                querySnapshot.forEach(doc => {
+                    if (doc.data().cancelled !== true) {
+                        bookedSlots.push(doc.id);
+                    }
+                });
                 if (selectedDateForBooking) {
                     renderTimeSlots(selectedDateForBooking);
                 }
@@ -1168,14 +1172,23 @@
                                      await updateDoc(apptRef, { status: 'cancelled' });
                                      
                                      if (slotId) {
-                                         await deleteDoc(doc(db, "booked_slots", slotId));
+                                         try {
+                                             await deleteDoc(doc(db, "booked_slots", slotId));
+                                         } catch (delErr) {
+                                             console.warn("Delete slot failed, trying update:", delErr);
+                                             try {
+                                                 await updateDoc(doc(db, "booked_slots", slotId), { cancelled: true });
+                                             } catch (updErr) {
+                                                 console.error("Update slot also failed:", updErr);
+                                             }
+                                         }
                                      }
 
                                      statusResultEl.innerHTML = '<p class="text-green-600 text-center font-semibold">ส่งคำขอยกเลิกนัดหมายสำเร็จแล้ว</p>';
                                      showToast("ส่งคำขอยกเลิกนัดหมายสำเร็จ");
                                  } catch (error) {
                                      console.error("Cancellation error:", error);
-                                     statusResultEl.innerHTML = '<p class="text-red-500 text-center font-semibold">เกิดข้อผิดพลาดในการยกเลิก</p>';
+                                     statusResultEl.innerHTML = `<p class="text-red-500 text-center font-semibold">เกิดข้อผิดพลาดในการยกเลิก: ${error.message}</p>`;
                                      showToast("เกิดข้อผิดพลาดในการยกเลิก", true);
                                  } finally {
                                      showLoading(false);
@@ -1227,7 +1240,10 @@
                         const appt = allAppointments.find(a => a.id === apptId);
                         if (appt) {
                             const slotId = `${appt.date}_${appt.time.replace(':', '-')}`;
-                            deleteDoc(doc(db, "booked_slots", slotId)).catch(console.error);
+                            deleteDoc(doc(db, "booked_slots", slotId)).catch((err) => {
+                                console.warn("Admin delete slot failed, trying update:", err);
+                                updateDoc(doc(db, "booked_slots", slotId), { cancelled: true }).catch(console.error);
+                            });
                         }
                     }
                 }
