@@ -1157,6 +1157,7 @@
                 statusResultEl.addEventListener('click', async (e) => {
                     if (e.target.id === 'patient-cancel-btn') {
                         const apptId = e.target.dataset.id;
+                        const slotId = e.target.dataset.slotId;
                          showConfirmationModal(
                              'ยืนยันการยกเลิก',
                              'คุณแน่ใจหรือไม่ว่าต้องการยกเลิกนัดหมายนี้?',
@@ -1165,6 +1166,10 @@
                                  try {
                                      const apptRef = doc(db, "appointments", apptId);
                                      await updateDoc(apptRef, { status: 'cancelled' });
+                                     
+                                     if (slotId) {
+                                         await deleteDoc(doc(db, "booked_slots", slotId));
+                                     }
 
                                      statusResultEl.innerHTML = '<p class="text-green-600 text-center font-semibold">ส่งคำขอยกเลิกนัดหมายสำเร็จแล้ว</p>';
                                      showToast("ส่งคำขอยกเลิกนัดหมายสำเร็จ");
@@ -1214,7 +1219,18 @@
                 const exportCsvBtn = e.target.closest('#export-csv-btn');
                 const deleteNewsBtn = e.target.closest('.delete-news-btn');
 
-                if (updateBtn) updateDoc(doc(db, "appointments", updateBtn.dataset.id), { status: updateBtn.dataset.status });
+                if (updateBtn) {
+                    const apptId = updateBtn.dataset.id;
+                    const newStatus = updateBtn.dataset.status;
+                    updateDoc(doc(db, "appointments", apptId), { status: newStatus });
+                    if (newStatus === 'cancelled') {
+                        const appt = allAppointments.find(a => a.id === apptId);
+                        if (appt) {
+                            const slotId = `${appt.date}_${appt.time.replace(':', '-')}`;
+                            deleteDoc(doc(db, "booked_slots", slotId)).catch(console.error);
+                        }
+                    }
+                }
                 if (noteIcon) openNoteModal(noteIcon.dataset.id, noteIcon.dataset.note);
                 if (addServiceBtn) {
                     const input = document.getElementById('new-service-input');
