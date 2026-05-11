@@ -411,6 +411,7 @@
         let currentDate = new Date();
         let selectedDateForBooking = null;
         let selectedTimeForBooking = null;
+        let unsubscribeDayAppointments = null;
         let noteModalApptId = null;
         let currentPage = 1;
         const itemsPerPage = 10;
@@ -660,7 +661,9 @@
             timeSlotsContainer.classList.remove('hidden');
             timeSlotsGrid.innerHTML = '';
             
-            const dayBookedSlots = dateStr ? bookedSlots.filter(slotId => slotId.startsWith(dateStr)) : [];
+            const activeSlots = (window.dayAppointments || [])
+                .filter(appt => appt.status !== 'cancelled')
+                .map(appt => appt.time);
             
             if (!clinicConfig.availableTimeSlots || clinicConfig.availableTimeSlots.length === 0) {
                 timeSlotsGrid.innerHTML = '<p class="col-span-full text-slate-500">ไม่มีช่วงเวลาให้บริการ</p>';
@@ -670,8 +673,7 @@
             let hasSlot = false;
             clinicConfig.availableTimeSlots.forEach(timeString => {
                 hasSlot = true;
-                const slotId = `${dateStr}_${timeString.replace(':', '-')}`;
-                const isBooked = dayBookedSlots.includes(slotId);
+                const isBooked = activeSlots.includes(timeString);
                 let classes = 'time-slot p-2 border border-slate-200 rounded-lg text-center cursor-pointer font-medium';
                 if (isBooked) {
                     classes += ' disabled';
@@ -1145,7 +1147,21 @@
                     selectedDateForBooking = e.target.dataset.date;
                     selectedTimeForBooking = null;
                     renderCalendar(currentDate.getFullYear(), currentDate.getMonth());
-                    renderTimeSlots(selectedDateForBooking);
+                    
+                    if (unsubscribeDayAppointments) unsubscribeDayAppointments();
+                    
+                    showLoading(true);
+                    const q = query(collection(db, "appointments"), where("date", "==", selectedDateForBooking));
+                    unsubscribeDayAppointments = onSnapshot(q, (snap) => {
+                        window.dayAppointments = snap.docs.map(doc => doc.data());
+                        renderTimeSlots(selectedDateForBooking);
+                        showLoading(false);
+                    }, (err) => {
+                        console.error("Error listening to day appointments:", err);
+                        window.dayAppointments = [];
+                        renderTimeSlots(selectedDateForBooking);
+                        showLoading(false);
+                    });
                 }
             });
             document.getElementById('time-slots-grid').addEventListener('click', (e) => {
@@ -1388,39 +1404,45 @@
             showLoading(true);
 
             try {
+                const qCheck = query(collection(db, "appointments"), where("date", "==", selectedDateForBooking), where("time", "==", selectedTimeForBooking), where("status", "in", ["pending", "confirmed", "completed"]));
+                const checkSnap = await getDocs(qCheck);
+                if (!checkSnap.empty) {
+                    msgEl.textContent = 'ขออภัย เวลานี้ถูกจองไปแล้ว กรุณาเลือกเวลาอื่น';
+                    showLoading(false);
+                    return;
+                }
+
                 const q = query(collection(db, "appointments"), where("date", "==", selectedDateForBooking));
                 const querySnapshot = await getDocs(q);
                 const queueNumber = querySnapshot.size + 1;
 
-                const slotId = `${selectedDateForBooking}_${selectedTimeForBooking.replace(':', '-')}`;
-                const slotRef = doc(db, "booked_slots", slotId);
+                const bookingId = Math.floor(100000 + Math.random() * 900000).toString();
+                
+                const newAppointmentRef = doc(collection(db, "appointments"));
+                const appointmentData = { 
+                    bookingId: bookingId, 
+                    queueNumber: queueNumber,
+                    patientName, 
+                    patientContact, 
+                    patientAge,
+                    service: document.getElementById('service').value, 
+                    treatmentRight: document.getElementById('treatment-right').value,
+                    date: selectedDateForBooking, 
+                    time: selectedTimeForBooking, 
+                    status: 'pending', 
+                    createdAt: serverTimestamp(), 
+                    createdOnDate: new Date().toISOString().split('T')[0], 
+                    note: "" 
+                };
+                
+                await setDoc(newAppointmentRef, appointmentData);
+                
+                try {
+                    const slotId = `${selectedDateForBooking}_${selectedTimeForBooking.replace(':', '-')}`;
+                    await setDoc(doc(db, "booked_slots", slotId), { appointmentId: newAppointmentRef.id });
+                } catch(e) { console.warn("Could not sync with booked_slots", e); }
 
-                await runTransaction(db, async (transaction) => {
-                    const slotDoc = await transaction.get(slotRef);
-                    if (slotDoc.exists()) { throw "Slot already booked"; }
-                    
-                    const bookingId = Math.floor(100000 + Math.random() * 900000).toString();
-                    
-                    const newAppointmentRef = doc(collection(db, "appointments"));
-                    const appointmentData = { 
-                        bookingId: bookingId, 
-                        queueNumber: queueNumber,
-                        patientName, 
-                        patientContact, 
-                        patientAge,
-                        service: document.getElementById('service').value, 
-                        treatmentRight: document.getElementById('treatment-right').value,
-                        date: selectedDateForBooking, 
-                        time: selectedTimeForBooking, 
-                        status: 'pending', 
-                        createdAt: serverTimestamp(), 
-                        createdOnDate: new Date().toISOString().split('T')[0], 
-                        note: "" 
-                    };
-                    transaction.set(newAppointmentRef, appointmentData);
-                    transaction.set(slotRef, { appointmentId: newAppointmentRef.id });
-
-                    const bookingDetailsContainer = document.getElementById('booking-details-display');
+                const bookingDetailsContainer = document.getElementById('booking-details-display');
                     bookingDetailsContainer.innerHTML = `
                         <p><strong>รหัสจองคิว:</strong> <span class="font-mono text-lg font-bold text-indigo-600">${bookingId}</span></p>
                         <p><strong>หมายเลขคิว:</strong> <span class="font-bold text-lg">${queueNumber}</span></p>
@@ -1435,7 +1457,6 @@
                         <hr class="my-2 border-slate-200">
                         <p class="text-sm text-center text-slate-600 mt-4">กรุณามาตามวันและเวลาที่จอง<br>หากมีข้อสงสัย โทร. ${clinicConfig.contactPhone}</p>
                     `;
-                });
                 showView('confirmation-view');
                 document.getElementById('booking-form').reset();
                 selectedDateForBooking = null;
